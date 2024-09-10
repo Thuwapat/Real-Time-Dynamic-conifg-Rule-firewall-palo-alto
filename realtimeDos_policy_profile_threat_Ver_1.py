@@ -4,8 +4,9 @@ import xml.etree.ElementTree as ET
 import time
 
 # Palo Alto firewall credentials and IP
-firewall_ip = "192.168.1.100"
-api_key = "LUFRPT1zc1Q1VGZpeGNRWGNDbkswdTBUaStHNDdBZWM9TUk0c1htY1YrQVlTd3hvUmtvb1B2SDVqRTdOVHRGK1FuVWtrUksrQVdyckw0MktPSWo0RU1ONldlc0lqR2J3Wg=="
+firewall_ip = "192.168.11.100"
+api_key = "LUFRPT1FM2lUb0U5ZFRacHdSZU9hS1pQOGp2VzVmRkk9MXhaQWdwVmlpVEFOUWV5Q3F1UzR2NkhUbW02YXFhT1Avb2xIYmJ5dGhnbCtNL1Z3L0hjdDJTTlhpRlJ5M0hMNg=="
+
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
@@ -89,6 +90,8 @@ def get_new_logs(api_key, log_type="threat", last_seqno=None, max_logs=1):
     return None
 
 def create_dos_protection_profile(threat_type, protocol_type, profile_name):
+    if protocol_type == "tcp":
+        protocol_type = "tcp-syn"
     url = f"https://{firewall_ip}/restapi/v10.1/Objects/DoSProtectionSecurityProfiles?location=vsys&vsys=vsys1&name={profile_name}"
     headers = {
         'Content-Type': 'application/json',
@@ -101,12 +104,12 @@ def create_dos_protection_profile(threat_type, protocol_type, profile_name):
             "type": "aggregate",
             threat_type: {
                 protocol_type: {
+                    "enable": "yes",
                     "red": {
                         "alarm-rate": 10000,
                         "activate-rate": 10000,
                         "maximal-rate": 40000
                     },
-                    "enable": "yes"
                 }
             }
         }
@@ -116,9 +119,12 @@ def create_dos_protection_profile(threat_type, protocol_type, profile_name):
 
     if response.status_code == 200:
         print("DoS Protection Profile created successfully. profile : "+ profile_name)
+    elif  response.status_code == 409 :
+        print("Object already exits")    
     else:
         print(f"Failed to create DoS Protection Profile. Status code: {response.status_code}")
         print(response.text)
+
 
 def create_dos_protection_policy(src_ip, src_zone, profile_name,policy_rule_name):
    # policy_rule_name = f"rule_dos_block_{src_ip}"
@@ -181,7 +187,10 @@ def poll_logs(api_key, interval=1):
         if logs:
             for log in logs:
                 current_seqno = int(log['seqno'])
-                if last_seqno is None or current_seqno > last_seqno:
+                if  last_seqno is None:
+                    last_seqno = current_seqno
+                    continue  # Skip processing and start the next loop
+                if  current_seqno > last_seqno:
                     src_ip = log.get('src')
                     dst_ip = log.get('dst')
                     src_zone = log.get('from')
@@ -205,8 +214,8 @@ def poll_logs(api_key, interval=1):
                           "\nSource_zone=",src_zone,
                           "\nProtocol=",protocol_type,
                           "\nthreat_type=",threat_type)
-                        policy_rule_name = f"rule_Dos_{src_ip}_from_{src_zone}_{protocol_type}"
-                        profile_name = f"Dos_block_{src_ip}_{protocol_type}"
+                        policy_rule_name = f"DoS_rule_{src_ip}_from_{src_zone}"
+                        profile_name = f"{protocol_type}_flood_protection"    
                         create_dos_protection_profile(threat_type, protocol_type,profile_name)
                         create_dos_protection_policy(src_ip,src_zone,profile_name,policy_rule_name)
 

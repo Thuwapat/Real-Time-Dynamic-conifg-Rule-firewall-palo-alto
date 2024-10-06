@@ -11,11 +11,11 @@ api_key = "LUFRPT1FM2lUb0U5ZFRacHdSZU9hS1pQOGp2VzVmRkk9MXhaQWdwVmlpVEFOUWV5Q3F1U
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-# Dictionary to track the last detection time of each threat (by policy_rule_name)
+# Dictionary to track the last detection time of each threat (by policy_rule_name and profile_name)
 threat_timestamps = {}
 
 # Time threshold for removing unused DoS rules 
-INACTIVITY_THRESHOLD = timedelta(minutes=1)
+INACTIVITY_THRESHOLD = timedelta(minutes=5)
 
 def get_job_result(api_key, job_id):
     url = f"{firewall_ip}/api/"
@@ -229,19 +229,25 @@ def main(api_key, interval=1):
                     create_dos_protection_policy(src_ip, src_zone, profile_name, policy_rule_name)
 
                     # Track when the threat was detected for this rule
-                    threat_timestamps[policy_rule_name] = datetime.now()
-
+                    threat_timestamps[policy_rule_name] = {
+                        "profile_name": profile_name,
+                        "last_detected": datetime.now()
+                    }
+                    
                     last_seqno = current_seqno
 
         # Periodically check for inactivity and delete unused DoS rules
-        check_for_inactive_rules(profile_name)
+        check_for_inactive_rules()
 
         time.sleep(interval)
 
 # Function to check for inactive rules and delete them
-def check_for_inactive_rules(profile_name):
+def check_for_inactive_rules():
     current_time = datetime.now()
-    for policy_rule_name, last_detected in list(threat_timestamps.items()):
+    for policy_rule_name, threat_info in list(threat_timestamps.items()):
+        last_detected = threat_info['last_detected']
+        profile_name = threat_info['profile_name']
+
         if current_time - last_detected > INACTIVITY_THRESHOLD:
             # Delete the DoS rule and associated profile
             print(f"No threat detected for {policy_rule_name} for more than 5 minutes. Deleting...")

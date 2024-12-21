@@ -2,7 +2,7 @@ import requests
 import json
 
 # Palo Alto firewall credentials and IP
-firewall_ip = "192.168.1.100"
+firewall_ip = "192.168.11.100"
 api_key = "LUFRPT1FM2lUb0U5ZFRacHdSZU9hS1pQOGp2VzVmRkk9MXhaQWdwVmlpVEFOUWV5Q3F1UzR2NkhUbW02YXFhT1Avb2xIYmJ5dGhnbCtNL1Z3L0hjdDJTTlhpRlJ5M0hMNg=="
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)

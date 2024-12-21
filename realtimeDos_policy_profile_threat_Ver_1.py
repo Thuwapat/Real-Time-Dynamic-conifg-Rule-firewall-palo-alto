@@ -106,9 +106,9 @@ def create_dos_protection_profile(threat_type, protocol_type, profile_name):
                 protocol_type: {
                     "enable": "yes",
                     "red": {
-                        "alarm-rate": 10000,
-                        "activate-rate": 10000,
-                        "maximal-rate": 40000
+                        "alarm-rate": 250,
+                        "activate-rate": 250,
+                        "maximal-rate": 500
                     },
                 }
             }
@@ -164,7 +164,7 @@ def create_dos_protection_policy(src_ip, src_zone, profile_name,policy_rule_name
             },
             "protection": {
                 "aggregate": {
-                    "profile": profile_name,
+                    "profile": profile_name
                 }
             }
         }
@@ -179,9 +179,38 @@ def create_dos_protection_policy(src_ip, src_zone, profile_name,policy_rule_name
         print(f"Failed to create DoS Protection Policy. Status code: {response.status_code}")
         print(response.text)
 
+############################################################################
+# Function to delete a DoS rule
+def delete_dos_rule(api_key, policy_rule_name):
+    url = f"{firewall_ip}/restapi/v10.1/Policies/DoSRules?location=vsys&vsys=vsys1&name={policy_rule_name}"
+    headers = {
+        'X-PAN-KEY': api_key,
+        'Content-Type': 'application/json'
+    }
+    response = requests.delete(url, headers=headers, verify=False)
+    if response.status_code == 200:
+        print(f"DoS Rule '{policy_rule_name}' deleted successfully.")
+    else:
+        print(f"Failed to delete DoS Rule '{policy_rule_name}': {response.status_code} - {response.text}")
+
+# Function to delete a DoS profile
+def delete_dos_profile(api_key, profile_name):
+    url = f"{firewall_ip}/restapi/v10.1/Objects/DoSProtectionSecurityProfiles?location=vsys&vsys=vsys1&name={profile_name}"
+    headers = {
+        'X-PAN-KEY': api_key,
+        'Content-Type': 'application/json'
+    }
+    response = requests.delete(url, headers=headers, verify=False)
+    if response.status_code == 200:
+        print(f"DoS Profile '{profile_name}' deleted successfully.")
+    else:
+        print(f"Failed to delete DoS Profile '{profile_name}': {response.status_code} - {response.text}")
+
+
 def poll_logs(api_key, interval=1):
     last_seqno = None
     last_threat = None
+    print("Starting Script Auto DoS protection....")
     while True:
         logs = get_new_logs(api_key, last_seqno=last_seqno)
         if logs:
@@ -218,11 +247,10 @@ def poll_logs(api_key, interval=1):
                         profile_name = f"{protocol_type}_flood_protection"    
                         create_dos_protection_profile(threat_type, protocol_type,profile_name)
                         create_dos_protection_policy(src_ip,src_zone,profile_name,policy_rule_name)
-
                         last_threat = current_threat
-
-                    last_seqno = current_seqno
+                        last_seqno = current_seqno
+    
         time.sleep(interval)
 
-# Start polling for logs every 1 second
-poll_logs(api_key, interval=1)
+###### MAIN FUNCTION #####################
+poll_logs(api_key)

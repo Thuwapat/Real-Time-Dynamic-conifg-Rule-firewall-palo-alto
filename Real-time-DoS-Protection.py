@@ -15,7 +15,7 @@ requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.
 threat_timestamps = {}
 
 # Time threshold for removing unused DoS rules 
-INACTIVITY_THRESHOLD = timedelta(minutes=5)
+INACTIVITY_THRESHOLD = timedelta(minutes=3)
 
 def get_job_result(api_key, job_id):
     url = f"{firewall_ip}/api/"
@@ -110,8 +110,8 @@ def create_dos_protection_profile(threat_type, protocol_type, profile_name):
                 protocol_type: {
                     "enable": "yes",
                     "red": {
-                        "alarm-rate": 250,
-                        "activate-rate": 250,
+                        "alarm-rate": 100,
+                        "activate-rate": 100,
                         "maximal-rate": 500
                     },
                 }

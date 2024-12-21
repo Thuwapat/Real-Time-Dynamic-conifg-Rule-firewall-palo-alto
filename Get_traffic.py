@@ -4,7 +4,7 @@ import json
 import time
 
 # Palo Alto firewall credentials and IP
-firewall_ip = "192.168.1.100"
+firewall_ip = "192.168.11.100"
 api_key = "LUFRPT1FM2lUb0U5ZFRacHdSZU9hS1pQOGp2VzVmRkk9MXhaQWdwVmlpVEFOUWV5Q3F1UzR2NkhUbW02YXFhT1Avb2xIYmJ5dGhnbCtNL1Z3L0hjdDJTTlhpRlJ5M0hMNg=="  # You can generate an API key from the Palo Alto GUI
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -85,8 +85,8 @@ def get_all_logs(api_key, log_type="traffic", max_logs=1):
         print(f"HTTP error: {response.status_code} - {response.text}")
     return None
 
-if __name__ == "__main__":
-    # Retrieve all traffic logs
-    logs = get_all_logs(api_key)
-    if logs:
-        print(json.dumps(logs, indent=4))
+
+# Retrieve all traffic logs
+logs = get_all_logs(api_key)
+if logs:
+    print(json.dumps(logs, indent=4))

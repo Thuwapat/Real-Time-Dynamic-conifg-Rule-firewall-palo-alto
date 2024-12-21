@@ -1,7 +1,7 @@
 ############# This pull threat traffic every 1s ###############
 import requests
 import xml.etree.ElementTree as ET
-#import json
+import json
 import time
 
 # Palo Alto firewall credentials and IP

@@ -115,7 +115,7 @@ def create_dos_protection_policy(src_ip, src_zone, dst_zone, rule_name):
         commit_changes()
         print(f"DoS Protection Policy created successfully: {rule_name}")
         message = (f"🚨 DoS Detected 🚨\n"
-                    f"fSource IP: {src_ip} \n"
+                    f"Source IP: {src_ip} \n"
                     f"From: {src_zone} to: {dst_zone}")
         send_line_notification(message)
     elif response.status_code == 409:

@@ -2,16 +2,16 @@ import requests
 import json
 
 # Palo Alto firewall credentials and IP
-firewall_ip = "https://192.168.11.100"
-api_key = "LUFRPT1FM2lUb0U5ZFRacHdSZU9hS1pQOGp2VzVmRkk9MXhaQWdwVmlpVEFOUWV5Q3F1UzR2NkhUbW02YXFhT1Avb2xIYmJ5dGhnbCtNL1Z3L0hjdDJTTlhpRlJ5M0hMNg=="
+firewall_ip = "https://192.168.15.5"
+api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="
 
 # Disable SSL warnings 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 # Function to create a DoS rule using REST API
 def create_dos_rule(api_key):
-    profile_name = "DoS_Profile"
-    url = f"{firewall_ip}/restapi/v10.1/Objects/DoSProtectionSecurityProfiles?location=vsys&vsys=vsys1&name={profile_name}"
+    profile_name = "default-profile"
+    url = f"{firewall_ip}/restapi/v10.2/Objects/DoSProtectionSecurityProfiles?location=vsys&vsys=vsys1&name={profile_name}"
     headers = {
         'X-PAN-KEY': api_key,
         'Content-Type': 'application/json'

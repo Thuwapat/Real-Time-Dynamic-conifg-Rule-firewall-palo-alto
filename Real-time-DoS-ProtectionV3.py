@@ -15,7 +15,6 @@ LINE_USER_ID = "U54ed3cb10b1591fd7501976108dc1e36"
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-
 def fetch_active_sessions():
     """
     Fetch the active sessions from the Palo Alto firewall.
@@ -66,6 +65,78 @@ def parse_sessions(session_data):
     return session_count, len(unique_ips), zone_mapping
 
 existing_rules = set() # Global set to track already reported rules
+
+# Function to create a DoS profile using REST API
+def create_dos_profile(api_key):
+    profile_name = "default-profile"
+    url = f"https://{firewall_ip}/restapi/v10.2/Objects/DoSProtectionSecurityProfiles?location=vsys&vsys=vsys1&name={profile_name}"
+    headers = {'Content-Type': 'application/json', 'X-PAN-KEY': api_key}
+
+    # Define the rule payload in JSON format
+    payload = {
+        "entry": {
+            "@name": profile_name,
+            "type": "aggregate",
+            "flood": {
+                "tcp-syn": {
+                    "enable": "yes",
+                    "red": {
+                        "alarm-rate": 10000,
+                        "activate-rate": 10000,
+                        "maximal-rate": 40000
+                    },
+                },
+                "udp": {
+                    "enable": "yes",
+                    "red": {
+                        "alarm-rate": 10000,
+                        "activate-rate": 10000,
+                        "maximal-rate": 40000
+                    },
+                },
+                "icmp": {
+                    "enable": "yes",
+                    "red": {
+                        "alarm-rate": 10000,
+                        "activate-rate": 10000,
+                        "maximal-rate": 40000
+                    },
+                },
+                "icmpv6": {
+                    "enable": "yes",
+                    "red": {
+                        "alarm-rate": 10000,
+                        "activate-rate": 10000,
+                        "maximal-rate": 40000
+                    },
+                },
+                "other-ip": {
+                    "enable": "yes",
+                    "red": {
+                        "alarm-rate": 10000,
+                        "activate-rate": 10000,
+                        "maximal-rate": 40000
+                    },
+                }
+            },
+            "resource": {
+                "sessions": {
+                    "enabled": "yes"
+                }
+            },
+        }
+    }
+
+    response = requests.post(url, headers=headers, json=payload, verify=False)
+    if response.status_code == 200:
+        commit_changes()
+        print(f"DoS Protection Policy created successfully: {profile_name}")
+    elif response.status_code == 409:
+        if profile_name not in existing_rules:
+                print(f"Policy {profile_name} already exists")
+                existing_rules.add(profile_name)
+    else:
+        print(f"Failed to create DoS Protection Policy: {response.status_code} - {response.text}")
 
 def create_dos_protection_policy(src_ip, src_zone, dst_zone, rule_name):
     """
@@ -255,6 +326,7 @@ def main():
                     print(">>>>>>>> DoS Detected !!!!! <<<<<<<<")
                     src_zone, dst_zone = zone_mapping[src_ip]
                     rule_name = f"Block_IP_{src_ip.replace('.', '_')}"
+                    create_dos_profile(api_key)
                     create_dos_protection_policy(src_ip, src_zone, dst_zone, rule_name)
 
             # Check if unique IP count exceeds threshold
@@ -262,6 +334,7 @@ def main():
                 for src_ip, (src_zone, dst_zone) in zone_mapping.items():
                     print(">>>>>>>>> DDoS Detected !!!!!! <<<<<<<<")
                     rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
+                    create_dos_profile(api_key)
                     create_ddos_protection_policy(src_zone, dst_zone, rule_name)
                     break  # Create one rule for zones (to prevent duplicates)
 

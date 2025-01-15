@@ -63,7 +63,7 @@ def create_dos_profile(firewall_ip, api_key, existing_rules):
 
     response = requests.post(url, headers=headers, json=payload, verify=False)
     if response.status_code == 200:
-        commit_changes()
+        commit_changes(firewall_ip, api_key)
         print(f"DoS Protection Policy created successfully: {profile_name}")
     elif response.status_code == 409:
         if profile_name not in existing_rules:
@@ -117,7 +117,7 @@ def create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zon
 
     response = requests.post(url, headers=headers, json=payload, verify=False)
     if response.status_code == 200:
-        commit_changes()
+        commit_changes(firewall_ip, api_key)
         print(f"DoS Protection Policy created successfully: {rule_name}")
         #message = (f"🚨 DoS Detected 🚨\n"
         #            f"Source IP: {src_ip} \n"
@@ -176,7 +176,7 @@ def create_ddos_protection_policy(firewall_ip, api_key, src_zone, dst_zone, rule
 
     response = requests.post(url, headers=headers, json=payload, verify=False)
     if response.status_code == 200:
-        commit_changes()
+        commit_changes(firewall_ip, api_key)
         print(f"DDoS Protection Policy created successfully: {rule_name}")
         #message = (f"🚨 DDoS Detected 🚨\n"
         #            f"Create Rules Block Zone\n"

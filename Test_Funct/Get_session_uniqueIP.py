@@ -11,31 +11,47 @@ api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFna
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 
-def fetch_active_sessions():
+def fetch_all_active_sessions():
     """
-    Fetch the active sessions from the Palo Alto firewall.
+    Fetch all active sessions from the Palo Alto firewall using pagination.
     """
-    url = f"https://{firewall_ip}/api/"
-    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    sessions = []
+    start_point = 0  # Start from the first session
+    batch_size = 1024  # Palo Alto's default API limit
 
-    # Use the 'type=session' API call to get active sessions
-    payload = {
-        'type': 'op',
-        'cmd': '<show><session><all></all></session></show>',
-        'key': api_key
-    }
+    while True:
+        url = f"https://{firewall_ip}/api/"
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
-    try:
-        response = requests.post(url, headers=headers, data=payload, verify=False)
-        if response.status_code == 200:
-            response_xml = ET.fromstring(response.text)
-            return response_xml
-        else:
-            print(f"Error fetching active sessions: HTTP {response.status_code} - {response.text}")
-            return None
-    except Exception as e:
-        print(f"Error fetching sessions: {e}")
-        return None
+        payload = {
+            'type': 'op',
+            'cmd': f"<show><session><all></all><start-point>{start_point}</start-point></session></show>",
+            'key': api_key
+        }
+
+        try:
+            response = requests.post(url, headers=headers, data=payload, verify=False)
+            if response.status_code == 200:
+                response_xml = ET.fromstring(response.text)
+                batch_sessions = response_xml.findall(".//entry")
+                
+                # Add batch to the total list of sessions
+                sessions.extend(batch_sessions)
+                
+                # Break if less than batch_size fetched (no more sessions)
+                if len(batch_sessions) < batch_size:
+                    break
+                else:
+                    # Increment start_point for the next batch
+                    start_point += batch_size
+            else:
+                print(f"Error fetching active sessions: HTTP {response.status_code} - {response.text}")
+                break
+        except Exception as e:
+            print(f"Error fetching sessions: {e}")
+            break
+
+    return sessions
 
 
 def parse_sessions(session_data):
@@ -72,10 +88,10 @@ def display_session_statistics(session_count, unique_ip_count):
     
 if __name__ == "__main__":
     # Main loop to fetch and display session statistics periodically
-    POLL_INTERVAL = 1  # Time interval in seconds to fetch sessions and update statistics
+    POLL_INTERVAL = 1  # Sec
 
     while True:
-        session_data = fetch_active_sessions()
+        session_data = fetch_all_active_sessions()
         if session_data is not None:
             session_count, unique_ip_count = parse_sessions(session_data)
             display_session_statistics(session_count, unique_ip_count)

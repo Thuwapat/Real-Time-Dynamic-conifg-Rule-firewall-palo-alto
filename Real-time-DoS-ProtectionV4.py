@@ -7,15 +7,15 @@ from rules_config_funct import *
 firewall_ip = "192.168.15.5" 
 api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="  
 
+POLL_INTERVAL = 1  # Secound
+SESSION_THRESHOLD = 20  # Act session-per-IP
+UNIQUE_IP_THRESHOLD = 1000  # Unique soucre IP
+
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 # Global set to track already reported rules
 existing_rules = set() 
-
-POLL_INTERVAL = 1  # Secound
-SESSION_THRESHOLD = 20  # Act session-per-IP
-UNIQUE_IP_THRESHOLD = 1000  # Unique soucre IP
 
 print("-------- Start Real time DoS protection -----------")
 while True:

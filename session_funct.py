@@ -53,28 +53,28 @@ def fetch_active_sessions(firewall_ip, api_key):
         return None
     
 
-def parse_sessions(session_data):
+def parse_act_sessions(actsession_data):
     """
     Parse the active session data and calculate session counts for each source IP.
     Also track unique source IPs and related zones.
     """
-    session_count = defaultdict(int)
+    actsession_count = defaultdict(int)
     unique_ips = set()
     zone_mapping = {}
 
     # Find all session entries
-    sessions = session_data.findall(".//entry")
-    for session in sessions:
-        source_ip = session.find('source').text
-        src_zone = session.find('from').text
-        dst_zone = session.find('to').text
+    actsessions = actsession_data.findall(".//entry")
+    for actsession in actsessions:
+        source_ip = actsession.find('source').text
+        src_zone = actsession.find('from').text
+        dst_zone = actsession.find('to').text
 
         if source_ip:
-            session_count[source_ip] += 1
+            actsession_count[source_ip] += 1
             unique_ips.add(source_ip)
             zone_mapping[source_ip] = (src_zone, dst_zone)
 
-    return session_count, len(unique_ips), zone_mapping
+    return actsession_count, len(unique_ips), zone_mapping
 
 def parse_info_sessions(session_data):
     """

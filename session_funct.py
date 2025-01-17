@@ -11,7 +11,7 @@ def fetch_info_sessions(firewall_ip, api_key):
 
     payload = {
         'type': 'op',
-        'cmd': '<show><session><info></info></session></show>',
+        "cmd": "<show><session><info></info></session></show>",
         'key': api_key
     }
 
@@ -77,16 +77,18 @@ def parse_sessions(session_data):
     return session_count, len(unique_ips), zone_mapping
 
 def parse_info_sessions(session_data):
-
-    # Find all session entries
-    sessions = session_data.findall(".//entry")
+    """
+    Parse session statistics for ML-based detection.
+    """
+    sessions = session_data.findall(".//result")
     for session in sessions:
         cps = session.find('cps').text
         kbps = session.find('kbps').text
-        num_act = session.find('num-active').text
+        num_active = session.find('num-active').text
         num_icmp = session.find('num-icmp').text
         num_tcp = session.find('num-tcp').text
         num_udp = session.find('num-udp').text
-        pps = session.find('pps').text        
+        pps = session.find('pps').text
+    return cps, kbps, num_active, num_icmp, num_tcp, num_udp, pps
 
-    return cps, kbps, num_act, num_icmp, num_tcp, num_udp, pps
+

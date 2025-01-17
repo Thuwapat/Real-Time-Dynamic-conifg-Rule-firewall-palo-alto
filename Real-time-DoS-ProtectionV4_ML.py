@@ -1,16 +1,17 @@
 import requests
 import time
 import pickle
+import pandas as pd
 from session_funct import *
 from rules_config_funct import *
 
 # Palo Alto firewall credentials and IP
-firewall_ip = "192.168.15.5" 
-api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="  
+firewall_ip = "192.168.15.5"
+api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="
 
-POLL_INTERVAL = 1  # Secound
-SESSION_THRESHOLD = 1000  # Act session-per-IP
-UNIQUE_IP_THRESHOLD = 1000  # Unique soucre IP
+POLL_INTERVAL = 1  # Seconds
+SESSION_THRESHOLD = 20  # Active session-per-IP threshold
+UNIQUE_IP_THRESHOLD = 1000  # Unique source IP threshold
 
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -19,59 +20,50 @@ requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.
 with open('dos_detection_model.pkl', 'rb') as model_file:
     ml_model = pickle.load(model_file)
 
-# Global set to track already reported rules
-existing_rules = set() 
+print("-------- Start Real-Time DoS/DDoS Protection with ML --------")
 
-print("-------- Start Real time DoS protection -----------")
 while True:
-    #session_data = fetch_active_sessions(firewall_ip, api_key)
+    # Fetch session statistics
     session_data = fetch_info_sessions(firewall_ip, api_key)
     if session_data is not None:
-        #session_count, unique_ip_count, zone_mapping = parse_sessions(session_data)
-        cps, kbps, num_act, num_icmp, num_tcp, num_udp, pps = parse_info_sessions(session_data)
+        # Extract session statistics
+        cps, kbps, num_active, num_icmp, num_tcp, num_udp, pps = parse_info_sessions(session_data)
 
-        # Prepare the feature set for the ML model
+        # Prepare feature vector for ML prediction
         features = {
-            'cps': int(cps),
-            'kbps': int(kbps),
-            'num-active': int(num_act),
-            'num-icmp': int(num_icmp),
-            'num-tcp': int(num_tcp),
-            'num-udp': int(num_udp),
-            'pps': int(pps)
+            'cps': cps,
+            'kbps': kbps,
+            'num-active': num_active,
+            'num-icmp': num_icmp,
+            'num-tcp': num_tcp,
+            'num-udp': num_udp,
+            'pps': pps
         }
+        feature_vector = pd.DataFrame([features])
+
+        # Align feature vector with model's training feature names
+        feature_vector = feature_vector.reindex(columns=ml_model.feature_names_in_, fill_value=0)
+
         feature_vector = [[features[feat] for feat in ml_model.feature_names_in_]]
+
+        print(ml_model.feature_names_in_)
+        print(feature_vector)
 
         # Predict attack type
         predicted_attack = ml_model.predict(feature_vector)[0]
+        print(f"Predicted Attack Type: {predicted_attack}")
 
-        if predicted_attack == 1:  # Example: 1 represents DoS attack
+
+        # Trigger protections based on predictions
+        if predicted_attack == "1":  # DoS attack
             print(">>>>>>>> DoS Detected by ML !!!!! <<<<<<<<")
             #create_dos_profile(firewall_ip, api_key)
-            # Implement logic to create DoS rules (e.g., block offending IP)
+            # Add logic to create specific DoS rules if required
 
-        elif predicted_attack == 2:  # Example: 2 represents DDoS attack
+        elif predicted_attack == "2":  # DDoS attack
             print(">>>>>>>>> DDoS Detected by ML !!!!!! <<<<<<<<")
             #create_dos_profile(firewall_ip, api_key)
-            # Implement logic to create DDoS rules (e.g., block offending zone)
-
-       # # Check each Source IP for session threshold
-       # for src_ip, count in session_count.items():
-       #     if count >= SESSION_THRESHOLD:
-       #         print(">>>>>>>> DoS Detected !!!!! <<<<<<<<")
-       #         src_zone, dst_zone = zone_mapping[src_ip]
-       #         rule_name = f"Block_IP_{src_ip.replace('.', '_')}"
-       #         create_dos_profile(firewall_ip, api_key, existing_rules)
-       #         create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
-#
-       # # Check if unique IP count exceeds threshold
-       # if unique_ip_count >= UNIQUE_IP_THRESHOLD:
-       #     for src_ip, (src_zone, dst_zone) in zone_mapping.items():
-       #         print(">>>>>>>>> DDoS Detected !!!!!! <<<<<<<<")
-       #         rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
-       #         create_dos_profile(api_key)
-       #         create_ddos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
-       #         break # for stop dulicate Zone rules
+            # Add logic to create DDoS rules if required
 
     else:
         print("No session data found.")

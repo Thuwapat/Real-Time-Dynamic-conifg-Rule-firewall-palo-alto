@@ -6,10 +6,10 @@ with open('dos_detection_model.pkl', 'rb') as model_file:
     loaded_model = pickle.load(model_file)
 
 # Load new data
-new_data = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/dataset/test.csv")
+new_data = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/testML.csv")
 
 # Define the features to be used
-features = ['sport', 'dport', 'bytes', 'bytes_sent', 'bytes_received', 'packets', 'pkts_sent', 'pkts_received', 'elapsed']
+features = ['cps', 'kbps', 'num-active', 'num-icmp', 'num-tcp', 'num-udp', 'pps']
 new_data = new_data[features]
 
 # Drop non-numeric feature

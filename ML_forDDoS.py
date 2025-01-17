@@ -5,17 +5,17 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, accuracy_score
 
 # Load dataset!
-normal_data = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/dataset/traffic_logs_ICMP.csv") 
-dos_data = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/dataset/traffic_logs_SYN.csv")
-ddos_data = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/session_infoDDOS.csv")
+normal_data = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/session_infoNormal_clean.csv") 
+dos_data = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/session_infoDOS_clean.csv")
+ddos_data = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/session_infoDDOS_clean.csv")
  
  # Add new column 
-normal_data['state'] = 'Normal' 
-dos_data['state'] = 'DoS' 
-ddos_data['state'] = 'DDoS' 
+normal_data['state'] = '0' 
+dos_data['state'] = '1' 
+ddos_data['state'] = '2' 
 
 # Feature use for train
-features = ['sport', 'dport', 'bytes', 'bytes_sent', 'bytes_received', 'packets', 'pkts_sent', 'pkts_received', 'elapsed']
+features = ['cps', 'kbps', 'num-active', 'num-icmp', 'num-tcp', 'num-udp', 'pps']
 combined_data = pd.concat([normal_data[features + ['state']], # Add Attack_type feature for each data and combine them together
                            dos_data[features + ['state']],
                            ddos_data[features + ['state']]])
@@ -28,8 +28,8 @@ combined_data = combined_data.fillna(0)
 
 
 # Define x and y data
-x = combined_data.drop(columns=['attack_type'])
-y = combined_data['attack_type']
+x = combined_data.drop(columns=['state'])
+y = combined_data['state']
 
 # Spilt data 
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)

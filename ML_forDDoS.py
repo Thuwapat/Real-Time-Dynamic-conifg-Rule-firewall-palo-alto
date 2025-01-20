@@ -21,7 +21,7 @@ combined_data = pd.concat([normal_data[features + ['state']], # Add Attack_type 
                            ddos_data[features + ['state']]])
 
 # If Var Missing add 0 not Null allow!
-combined_data = combined_data.fillna(0)
+combined_data = combined_data.fillna(0).astype(int)
 
 # For check data
 #combined_data.to_csv('D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/combined_data.csv', index=False)
@@ -37,7 +37,7 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_
 #******************************************************************************
 
 # Train a Random Forest classifier
-rf_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_classifier = RandomForestClassifier(n_estimators=100, random_state=0)
 rf_classifier.fit(x_train, y_train)
 
 # Save the trained model

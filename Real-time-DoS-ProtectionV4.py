@@ -21,7 +21,7 @@ print("-------- Start Real time DoS protection -----------")
 while True:
     session_data = fetch_active_sessions(firewall_ip, api_key)
     if session_data is not None:
-        session_count, unique_ip_count, zone_mapping = parse_sessions(session_data)
+        session_count, unique_ip_count, zone_mapping = parse_act_sessions(session_data)
 
         # Check each Source IP for session threshold
         for src_ip, count in session_count.items():

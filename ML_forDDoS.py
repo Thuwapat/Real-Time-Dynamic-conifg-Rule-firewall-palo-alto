@@ -32,7 +32,7 @@ x = combined_data.drop(columns=['state'])
 y = combined_data['state']
 
 # Spilt data 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
+x_train, x_test, y_train, y_test = train_test_split(x.values, y.values, test_size=0.2, random_state=0)
 
 #******************************************************************************
 

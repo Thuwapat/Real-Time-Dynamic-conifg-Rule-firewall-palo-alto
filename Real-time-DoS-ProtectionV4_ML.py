@@ -76,7 +76,7 @@ while True:
             for src_ip, (src_zone, dst_zone) in zone_mapping.items():
                 rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
                 create_dos_profile(api_key)
-                create_ddos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
+                create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)
                 break # for stop dulicate Zone rules
 
     else:

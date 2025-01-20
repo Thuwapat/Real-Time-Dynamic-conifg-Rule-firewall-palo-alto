@@ -72,10 +72,9 @@ def create_dos_profile(firewall_ip, api_key, existing_rules):
     else:
         print(f"Failed to create DoS Protection Policy: {response.status_code} - {response.text}")
 
+# Create a DoS Protection Policy for a specific source IP.
 def create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules):
-    """
-    Create a DoS Protection Policy for a specific source IP.
-    """
+
     url = f"https://{firewall_ip}/restapi/v10.2/Policies/DoSRules?location=vsys&vsys=vsys1&name={rule_name}"
     headers = {'Content-Type': 'application/json', 'X-PAN-KEY': api_key}
 
@@ -130,11 +129,9 @@ def create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zon
     else:
         print(f"Failed to create DoS Protection Policy: {response.status_code} - {response.text}")
 
-
+# Create a DoS Protection Policy for a zone-based rule.
 def create_ddos_protection_policy(firewall_ip, api_key, src_zone, dst_zone, rule_name, existing_rules):
-    """
-    Create a DoS Protection Policy for a zone-based rule.
-    """
+  
     url = f"https://{firewall_ip}/restapi/v10.2/Policies/DoSRules?location=vsys&vsys=vsys1&name={rule_name}"
     headers = {'Content-Type': 'application/json', 'X-PAN-KEY': api_key}
 
@@ -189,10 +186,9 @@ def create_ddos_protection_policy(firewall_ip, api_key, src_zone, dst_zone, rule
     else:
         print(f"Failed to create DDoS Protection Policy: {response.status_code} - {response.text}")
 
+# Commit the changes to the Palo Alto firewall.
 def commit_changes(firewall_ip, api_key):
-    """
-    Commit the changes to the Palo Alto firewall.
-    """
+
     url = f"https://{firewall_ip}/api/"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 

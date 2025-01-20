@@ -48,11 +48,6 @@ while True:
         }
         feature_vector = pd.DataFrame([features])
 
-        # Align feature vector with model's training feature names
-        feature_vector = feature_vector.reindex(columns=ml_model.feature_names_in_, fill_value=0)
-
-        feature_vector = [[features[feat] for feat in ml_model.feature_names_in_]]
-
         #print(ml_model.feature_names_in_)
         #
         #print(feature_vector)

@@ -24,7 +24,7 @@ combined_data = pd.concat([normal_data[features + ['state']], # Add Attack_type 
 combined_data = combined_data.fillna(0).astype(int)
 
 # For check data
-#combined_data.to_csv('D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/combined_data.csv', index=False)
+combined_data.to_csv('D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/combined_data.csv', index=False)
 
 
 # Define x and y data

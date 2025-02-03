@@ -33,7 +33,7 @@ while True:
         session_count, unique_ip_count, zone_mapping = parse_act_sessions(actsession_data)
 
         # Prepare feature vector for RL model (Convert to NumPy Array)
-        features = np.array([[cps, kbps, num_active, num_icmp, num_tcp, num_udp, pps]])
+        features = np.array([[float(cps), float(kbps), float(num_active), float(num_icmp), float(num_tcp), float(num_udp), float(pps)]], dtype=np.float32)
 
         # Get action from RL model
         action, _ = rl_model.predict(features)

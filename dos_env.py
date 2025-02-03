@@ -51,14 +51,15 @@ class DoSDetectionEnv(gym.Env):
         attack_type = self.data.iloc[self.current_index, -1]  # 0 = Normal, 1 = DoS, 2 = DDoS
 
         # Reward system based on attack type
-        if action == 0:  # Do Nothing
-            reward = -1 if attack_type > 0 else 1  # Penalize if attack continues
-        elif action == 1:  # Block Source IP
-            reward = 5 if attack_type > 0 else -2  # Reward if attack is stopped
-        elif action == 2:  # Apply Rate Limiting
-            reward = 3 if attack_type == 1 else -1  # Reward for DoS but not DDoS
-        elif action == 3:  # Limit Connections
-            reward = 4 if attack_type == 2 else -1  # Reward for DDoS but not DoS
+        if action == 0:  # Do Nothing it normal traffic
+            reward = -2 if attack_type != 0 else 2  # High penalty if attack continues, small reward for normal traffic
+
+        elif action == 1:  # Apply DoS Rules
+            reward = 5 if attack_type == 1 else -3  # Reward for stopping DoS, but penalty if blocking normal traffic
+
+        elif action == 2:  # Apply DDoS Rules
+            reward = 8 if attack_type == 2 else -5  # Higher reward for DDoS, penalty for unnecessary action
+
 
         # Stop if max steps reached
         self.steps += 1

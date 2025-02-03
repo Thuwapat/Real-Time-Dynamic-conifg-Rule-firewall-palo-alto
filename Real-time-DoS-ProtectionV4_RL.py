@@ -42,7 +42,7 @@ while True:
         if action == 0:
             print(" No Action Taken (RL Decision)")
         elif action == 1:
-            print(" RL Decision: Block Source IP (DoS Detected)")
+            print(" RL Decision: DoS Detected")
             for src_ip, count in session_count.items():
                 src_zone, dst_zone = zone_mapping[src_ip]
                 rule_name = f"Block_IP_{src_ip.replace('.', '_')}"
@@ -50,11 +50,7 @@ while True:
                 create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
 
         elif action == 2:
-            print("RL Decision: Apply Rate Limiting (Possible DoS)")
-            # Implement rate-limiting logic here
-
-        elif action == 3:
-            print(" RL Decision: Limit Connections (DDoS Detected)")
+            print(" RL Decision: DDoS Detected")
             for src_ip, (src_zone, dst_zone) in zone_mapping.items():
                 rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
                 create_dos_profile(firewall_ip, api_key, existing_rules)

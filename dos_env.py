@@ -58,7 +58,7 @@ class DoSDetectionEnv(gym.Env):
             reward = 5 if attack_type == 1 else (-1 if attack_type == 2 else -3)  
 
         elif action == 2:  # Apply DDoS Rules
-            reward = 8 if attack_type == 2 else (-1 if attack_type == 1 else -4)  
+            reward = 5 if attack_type == 2 else (-1 if attack_type == 1 else -4)  
 
 
         # Stop if max steps reached

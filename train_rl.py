@@ -24,8 +24,8 @@ model = PPO(
 )
 
 # Train RL Model with More Steps
-model.learn(total_timesteps=2500000)  # Increase steps for better learning
+model.learn(total_timesteps=5000000)  # Increase steps for better learning
 
 # Save Optimized Model
 model.save("dos_rl_agent")
-print("RL Agent Trained with Optimized Settings!")
+print("RL Agent Trained")

@@ -52,13 +52,13 @@ class DoSDetectionEnv(gym.Env):
 
         # Reward system based on attack type
         if action == 0:  # Do Nothing it normal traffic
-            reward = -2 if attack_type != 0 else 2  # High penalty if attack continues, small reward for normal traffic
+            reward = -5 if attack_type != 0 else 3 # High penalty if attack continues, small reward for normal traffic
 
         elif action == 1:  # Apply DoS Rules
-            reward = 5 if attack_type == 1 else -3  # Reward for stopping DoS, but penalty if blocking normal traffic
+            reward = 6 if attack_type == 1 else -3  # Reward for stopping DoS, but penalty if blocking normal traffic
 
         elif action == 2:  # Apply DDoS Rules
-            reward = 8 if attack_type == 2 else -5  # Higher reward for DDoS, penalty for unnecessary action
+            reward = 10 if attack_type == 2 else -5  # Higher reward for DDoS, penalty for unnecessary action
 
 
         # Stop if max steps reached

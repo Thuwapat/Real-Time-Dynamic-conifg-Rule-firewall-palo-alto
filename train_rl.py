@@ -11,14 +11,14 @@ env = DummyVecEnv([lambda: DoSDetectionEnv(dataset_path)])
 model = PPO(
     "MlpPolicy", env,
     device="cpu",
-    n_steps=1024,             # Increase batch size for stable updates
+    n_steps=2048,             # Increase batch size for stable updates
     batch_size=64,            # Reduce batch size for smoother updates
-    learning_rate=3e-4,      # Reduce learning rate for better stability
+    learning_rate=1e-4,      # Reduce learning rate for better stability
     gamma=0.99,               # Discount factor (higher for long-term learning)
     gae_lambda=0.95,          # Smoother advantage estimation
-    clip_range=0.1,           # Smaller clipping to prevent instability
-    ent_coef=0.02,            # Increase entropy coefficient for better exploration
-    vf_coef=0.2,              # Reduce value function impact to decrease loss
+    clip_range=0.3,           # Smaller clipping to prevent instability
+    ent_coef=0.01,            # Increase entropy coefficient for better exploration
+    vf_coef=0.1,              # Reduce value function impact to decrease loss
     max_grad_norm=0.5,        # Prevent exploding gradients
     verbose=1
 )

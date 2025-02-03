@@ -11,20 +11,20 @@ env = DummyVecEnv([lambda: DoSDetectionEnv(dataset_path)])
 model = PPO(
     "MlpPolicy", env,
     device="cpu",
-    n_steps=2048,             # Increase batch size for stable updates
-    batch_size=64,            # Reduce batch size for smoother updates
-    learning_rate=3e-4,      # Reduce learning rate for better stability
-    gamma=0.99,               # Discount factor (higher for long-term learning)
+    n_steps=2048,             # Larger batch size
+    batch_size=64,            # Stable updates
+    learning_rate=3e-4,       # Slightly increased learning rate
+    gamma=0.99,               # Long-term reward learning
     gae_lambda=0.95,          # Smoother advantage estimation
-    clip_range=0.3,           # Smaller clipping to prevent instability
-    ent_coef=0.2,            # Increase entropy coefficient for better exploration
-    vf_coef=0.1,              # Reduce value function impact to decrease loss
-    max_grad_norm=0.5,        # Prevent exploding gradients
+    clip_range=0.2,           # Increased clipping for better learning
+    ent_coef=0.01,            # Balanced exploration
+    vf_coef=0.3,              # Reduced value function impact
+    max_grad_norm=0.5,        # Prevents large updates
     verbose=1
 )
 
 # Train RL Model with More Steps
-model.learn(total_timesteps=1000000)  # Increase steps for better learning
+model.learn(total_timesteps=2500000)  # Increase steps for better learning
 
 # Save Optimized Model
 model.save("dos_rl_agent")

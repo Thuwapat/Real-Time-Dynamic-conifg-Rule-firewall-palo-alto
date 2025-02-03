@@ -31,8 +31,8 @@ class DoSDetectionEnv(gym.Env):
             low=0, high=1, shape=(7,), dtype=np.float32
         )
 
-        # Define Action Space (4 Firewall Actions)
-        self.action_space = spaces.Discrete(3)  # 4 actions: No Action, Apply DoS rules, Apply DDoS rules
+        # Define Action Space (3 Firewall Actions)
+        self.action_space = spaces.Discrete(3)  # 3 actions: No Action, Apply DoS rules, Apply DDoS rules
 
         # Initialize State
         self.state = self.data.iloc[self.current_index, :-1].values
@@ -51,14 +51,15 @@ class DoSDetectionEnv(gym.Env):
         attack_type = self.data.iloc[self.current_index, -1]  # 0 = Normal, 1 = DoS, 2 = DDoS
 
         # Reward system based on attack type
-        if action == 0:  # Do Nothing it normal traffic
-            reward = -5 if attack_type != 0 else 2 # High penalty if attack continues, small reward for normal traffic
+        if action == 0:  # Do Nothing
+            reward = -3 if attack_type != 0 else 2  # Still penalize, but less harsh
 
         elif action == 1:  # Apply DoS Rules
-            reward = 8 if attack_type == 1 else (-2 if attack_type == 2 else -3)  
+            reward = 5 if attack_type == 1 else (-1 if attack_type == 2 else -3)  
 
         elif action == 2:  # Apply DDoS Rules
-            reward = 10 if attack_type == 2 else (-2 if attack_type == 1 else -5)  
+            reward = 8 if attack_type == 2 else (-1 if attack_type == 1 else -4)  
+
 
         # Stop if max steps reached
         self.steps += 1

@@ -1,7 +1,7 @@
 import requests
 import time
 import numpy as np
-from stable_baselines3 import PPO
+from stable_baselines3 import DQN
 from session_funct import *
 from rules_config_funct import *
 
@@ -17,7 +17,7 @@ requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.
 existing_rules = set()
 
 # Load the trained model
-rl_model = PPO.load("dos_rl_agent")
+rl_model = DQN.load("dos_rl_agent")
 
 print("-------- Start Real-Time DoS/DDoS Protection with RL --------")
 

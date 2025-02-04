@@ -51,7 +51,9 @@ class DoSDetectionEnv(gym.Env):
 
         if action == 0:  # No Action Normal traffic 
             if attack_type == 0:
-                reward = 1  
+                reward = 2  
+            elif attack_type == 1:
+                reward = -2
             else:
                 reward = -3
 
@@ -59,7 +61,7 @@ class DoSDetectionEnv(gym.Env):
             if attack_type == 1:
                 reward = 3
             elif attack_type == 2:
-                reward = -4 
+                reward = -2 
             else:
                 reward = -3  
 
@@ -69,7 +71,7 @@ class DoSDetectionEnv(gym.Env):
             elif attack_type == 1:
                 reward = -3  
             else:
-                reward = -4
+                reward = -3
 
         self.steps += 1
         self.done = self.steps >= self.num_samples  

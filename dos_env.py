@@ -52,19 +52,23 @@ class DoSDetectionEnv(gym.Env):
         # Reward system based on attack type
         if action == 0:  # No Action
             if attack_type == 0:
-                reward = 0  # True Negative 
+                reward = 0  # True Negative
             else:
                 reward = -1  # False Negative 
 
         elif action == 1:  # Apply DoS Rules
             if attack_type == 1:
                 reward = 1  # True Positive 
+            elif attack_type == 2:
+                reward = -3  # Penalty for misclassifying DDoS as DoS
             else:
                 reward = -2 # False Positive
 
         elif action == 2:  # Apply DDoS Rules
             if attack_type == 2:
                 reward = 1  # True Positive 
+            elif attack_type == 1:
+                reward = -3  # Penalty for misclassifying DoS as DDoS
             else:
                 reward = -2 # False Positive
 

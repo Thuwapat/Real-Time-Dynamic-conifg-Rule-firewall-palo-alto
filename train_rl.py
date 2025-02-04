@@ -9,7 +9,7 @@ env = DummyVecEnv([lambda: DoSDetectionEnv(dataset_path)])
 
 model = DQN("MlpPolicy", env, device="cpu", verbose=1)
 
-model.learn(total_timesteps=10000000) 
+model.learn(total_timesteps=3) 
 
 model.save("dos_rl_agent")
 print("RL Agent Trained")

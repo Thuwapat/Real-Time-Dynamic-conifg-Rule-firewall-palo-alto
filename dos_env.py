@@ -75,7 +75,7 @@ class DoSDetectionEnv(gym.Env):
         return self.state, reward, self.done, {}
 
     def reset(self):
-        self.data = self.data.sample(frac=1, random_state=np.random.randint(0, 10000)).reset_index(drop=True)  # Shuffle dataset
+        self.data = self.data.sample(frac=1, random_state=42).reset_index(drop=True)  # Shuffle dataset
         self.current_index = 0
         self.state = self.data.iloc[self.current_index, :-1].values
         self.steps = 0

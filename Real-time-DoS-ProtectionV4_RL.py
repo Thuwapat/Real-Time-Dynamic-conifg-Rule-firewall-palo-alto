@@ -32,7 +32,7 @@ while True:
         session_count, unique_ip_count, zone_mapping = parse_act_sessions(actsession_data)
 
         features = np.array([[float(cps), float(kbps), float(num_active), float(num_icmp), float(num_tcp), float(num_udp), float(pps)]], dtype=np.float32)
-        #print(featuer)
+        print(features)
         action, _ = rl_model.predict(features)
         
         if action == 0:

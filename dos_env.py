@@ -43,7 +43,7 @@ class DoSDetectionEnv(gym.Env):
         reward = 0
 
         # Get next data sample
-        self.current_index = (self.current_index + 1) % self.num_samples
+        self.current_index = np.random.randint(0, self.num_samples)
         self.state = self.data.iloc[self.current_index, :-1].values
 
         # Get attack type 
@@ -52,25 +52,21 @@ class DoSDetectionEnv(gym.Env):
         # Reward system based on attack type
         if action == 0:  # No Action
             if attack_type == 0:
-                reward = 0  # True Negative
+                reward = 1  
             else:
-                reward = -1  # False Negative 
+                reward = -1 
 
         elif action == 1:  # Apply DoS Rules
             if attack_type == 1:
-                reward = 1  # True Positive 
-            elif attack_type == 2:
-                reward = -3  # Penalty for misclassifying DDoS as DoS
+                reward = 1  
             else:
-                reward = -2 # False Positive
+                reward = -1 
 
         elif action == 2:  # Apply DDoS Rules
             if attack_type == 2:
-                reward = 1  # True Positive 
-            elif attack_type == 1:
-                reward = -3  # Penalty for misclassifying DoS as DDoS
+                reward = 1   
             else:
-                reward = -2 # False Positive
+                reward = -1 
 
         self.steps += 1
         self.done = self.steps >= self.num_samples  
@@ -78,8 +74,10 @@ class DoSDetectionEnv(gym.Env):
         return self.state, reward, self.done, {}
 
     def reset(self):
+        self.data = self.data.sample(frac=1, random_state=np.random.randint(0, 10000)).reset_index(drop=True)  # ✅ Shuffle dataset
         self.current_index = 0
         self.state = self.data.iloc[self.current_index, :-1].values
         self.steps = 0
         self.done = False
         return self.state
+

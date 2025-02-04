@@ -49,29 +49,25 @@ class DoSDetectionEnv(gym.Env):
         # Get attack type 
         attack_type = self.data.iloc[self.current_index, -1]  # 0 = Normal, 1 = DoS, 2 = DDoS
 
-        if action == 0:  # No Action Normal traffic 
-            if attack_type == 0:
-                reward = 2  
-            elif attack_type == 1:
-                reward = -2
-            else:
-                reward = -3
+        if attack_type == 0:  # Normal traffic
+            if action == 0:  # Correct: No Action
+                reward = +1.0
+            else:  # False alarm: applied an attack rule on normal traffic
+                reward = -0.5
 
-        elif action == 1:  # Apply DoS Rules
-            if attack_type == 1:
-                reward = 3
-            elif attack_type == 2:
-                reward = -2 
-            else:
-                reward = -3  
+        elif attack_type == 1:  # DoS Attack
+            if action == 1:  # Correct detection of DoS
+                reward = +1.0
+            elif action == 0:  # Missed detection (no action)
+                reward = -1.5
+            else:  # Misclassification (using DDoS rule)
+                reward = -1.0
 
-        elif action == 2:  # Apply DDoS Rules
-            if attack_type == 2:
-                reward = 3
-            elif attack_type == 1:
-                reward = -3  
-            else:
-                reward = -3
+        elif attack_type == 2:  # DDoS Attack
+            if action == 2:  # Correct detection of DDoS
+                reward = +1.0
+            else:  # Missed detection (any other action)
+                reward = -1.5
 
         self.steps += 1
         self.done = self.steps >= self.num_samples  

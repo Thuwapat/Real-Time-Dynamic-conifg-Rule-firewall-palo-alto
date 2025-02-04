@@ -1,4 +1,4 @@
-import torch
-print("CUDA Available:", torch.cuda.is_available())
-print("CUDA Version:", torch.version.cuda)
-print("GPU Device Name:", torch.cuda.get_device_name(0))
+import pandas as pd
+
+df = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/combined_data.csv")
+print(df['state'].value_counts())  # ✅ Count of Normal, DoS, DDoS samples

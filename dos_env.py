@@ -53,19 +53,23 @@ class DoSDetectionEnv(gym.Env):
             if attack_type == 0:
                 reward = 1  
             else:
-                reward = -1
+                reward = -3
 
         elif action == 1:  # Apply DoS Rules
             if attack_type == 1:
-                reward = 1 
+                reward = 3
+            elif attack_type == 2:
+                reward = -4 
             else:
-                reward = -1  
+                reward = -3  
 
         elif action == 2:  # Apply DDoS Rules
             if attack_type == 2:
-                reward = 1  
+                reward = 3
+            elif attack_type == 1:
+                reward = -3  
             else:
-                reward = -1 
+                reward = -4
 
         self.steps += 1
         self.done = self.steps >= self.num_samples  

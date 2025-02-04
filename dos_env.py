@@ -5,7 +5,7 @@ from gym import spaces
 from sklearn.preprocessing import MinMaxScaler
 
 class DoSDetectionEnv(gym.Env):
-    """ Custom RL Environment for DoS/DDoS Detection with Real Dataset """
+    # Load Env with real dataset
     def __init__(self, dataset_path):
         super(DoSDetectionEnv, self).__init__()
 
@@ -13,10 +13,10 @@ class DoSDetectionEnv(gym.Env):
         self.data = pd.read_csv(dataset_path)
         self.scaler = MinMaxScaler()
         
-        # Identify feature columns (excluding labels or categorical ones)
-        feature_columns = self.data.columns[:-1]  # Assuming last column is the attack label
+        # Identify feature columns
+        feature_columns = self.data.columns[:-1]  
 
-        # Convert only feature columns to float (keep other columns unchanged)
+        # Convert only feature columns to float 
         self.data[feature_columns] = self.data[feature_columns].astype(float)
 
         # Apply MinMaxScaler only to numerical feature columns
@@ -40,35 +40,40 @@ class DoSDetectionEnv(gym.Env):
         self.done = False
 
     def step(self, action):
-        """ Take an action and return new state, reward, done, and info """
         reward = 0
 
         # Get next data sample
         self.current_index = (self.current_index + 1) % self.num_samples
         self.state = self.data.iloc[self.current_index, :-1].values
 
-        # Get attack type (last column in dataset)
+        # Get attack type 
         attack_type = self.data.iloc[self.current_index, -1]  # 0 = Normal, 1 = DoS, 2 = DDoS
 
         # Reward system based on attack type
-        if action == 0:  # Do Nothing
-            reward = 1 if attack_type == 0 else -1
+        if action == 0:  # No Action
+            if attack_type == 0:
+                reward = 0  # True Negative 
+            else:
+                reward = -1  # False Negative 
 
         elif action == 1:  # Apply DoS Rules
-            reward = 1 if attack_type == 1 else -1  
+            if attack_type == 1:
+                reward = 1  # True Positive 
+            else:
+                reward = -2 # False Positive
 
         elif action == 2:  # Apply DDoS Rules
-            reward = 1 if attack_type == 2 else -1 
+            if attack_type == 2:
+                reward = 1  # True Positive 
+            else:
+                reward = -2 # False Positive
 
-
-        # Stop if max steps reached
         self.steps += 1
-        self.done = self.steps >= self.num_samples  # End when dataset is exhausted
+        self.done = self.steps >= self.num_samples  
 
         return self.state, reward, self.done, {}
 
     def reset(self):
-        """ Reset environment at the start of a new episode """
         self.current_index = 0
         self.state = self.data.iloc[self.current_index, :-1].values
         self.steps = 0

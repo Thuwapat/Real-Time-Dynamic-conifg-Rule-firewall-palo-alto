@@ -5,7 +5,6 @@ from stable_baselines3 import PPO
 from session_funct import *
 from rules_config_funct import *
 
-# Palo Alto firewall credentials and IP
 firewall_ip = "192.168.15.5"
 api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="
 
@@ -17,7 +16,7 @@ requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.
 # Global set to track already reported rules
 existing_rules = set()
 
-# Load the trained RL model (PPO)
+# Load the trained model
 rl_model = PPO.load("dos_rl_agent")
 
 print("-------- Start Real-Time DoS/DDoS Protection with RL --------")
@@ -32,13 +31,10 @@ while True:
         cps, kbps, num_active, num_icmp, num_tcp, num_udp, pps = parse_info_sessions(session_data)
         session_count, unique_ip_count, zone_mapping = parse_act_sessions(actsession_data)
 
-        # Prepare feature vector for RL model (Convert to NumPy Array)
         features = np.array([[float(cps), float(kbps), float(num_active), float(num_icmp), float(num_tcp), float(num_udp), float(pps)]], dtype=np.float32)
 
-        # Get action from RL model
         action, _ = rl_model.predict(features)
         
-        # Interpret RL action and trigger firewall response
         if action == 0:
             print(" No Action Taken (RL Decision)")
         elif action == 1:

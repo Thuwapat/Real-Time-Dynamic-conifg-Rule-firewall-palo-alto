@@ -1,7 +1,6 @@
 import gym
 import numpy as np
 import pandas as pd
-import joblib
 from gym import spaces
 from sklearn.preprocessing import MinMaxScaler
 
@@ -23,7 +22,6 @@ class DoSDetectionEnv(gym.Env):
         # Apply MinMaxScaler only to numerical feature columns
         self.data[feature_columns] = self.scaler.fit_transform(self.data[feature_columns])
         
-        joblib.dump(self.scaler, "scaler.pkl")
         self.num_samples = len(self.data)
         self.current_index = 0
 

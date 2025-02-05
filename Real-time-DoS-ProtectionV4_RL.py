@@ -1,9 +1,11 @@
 import requests
 import time
 import numpy as np
+import joblib
 from stable_baselines3 import DQN
 from session_funct import *
 from rules_config_funct import *
+
 
 firewall_ip = "192.168.15.5"
 api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="
@@ -19,6 +21,9 @@ existing_rules = set()
 # Load the trained model
 rl_model = DQN.load("dos_rl_agent")
 
+# Load the trained MinMaxScaler
+scaler = joblib.load("scaler.pkl")
+
 print("-------- Start Real-Time DoS/DDoS Protection with RL --------")
 
 while True:
@@ -32,7 +37,11 @@ while True:
         session_count, unique_ip_count, zone_mapping = parse_act_sessions(actsession_data)
 
         features = np.array([[float(cps), float(kbps), float(num_active), float(num_icmp), float(num_tcp), float(num_udp), float(pps)]], dtype=np.float32)
+    
+        # Normalize the features
+        features = scaler.transform(features)  # APPLY SCALING HERE
         print(features)
+        
         action, _ = rl_model.predict(features)
         
         if action == 0:

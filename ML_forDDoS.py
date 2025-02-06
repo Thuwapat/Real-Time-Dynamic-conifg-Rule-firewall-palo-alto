@@ -37,7 +37,7 @@ x_train, x_test, y_train, y_test = train_test_split(x, y.values, test_size=0.2, 
 #******************************************************************************
 
 # Train a Random Forest classifier
-rf_classifier = RandomForestClassifier(n_estimators=100, random_state=0)
+rf_classifier = RandomForestClassifier(n_estimators=10000, random_state=0)
 rf_classifier.fit(x_train, y_train)
 
 # Save the trained model

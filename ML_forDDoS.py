@@ -10,9 +10,9 @@ dos_data = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/sess
 ddos_data = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/session_infoDDOS_clean.csv")
  
  # Add new column 
-normal_data['state'] = '0' 
-dos_data['state'] = '1' 
-ddos_data['state'] = '2' 
+normal_data['state'] = 0
+dos_data['state'] = 1 
+ddos_data['state'] = 2 
 
 # Feature use for train
 features = ['cps', 'kbps', 'num-active', 'num-icmp', 'num-tcp', 'num-udp', 'pps']

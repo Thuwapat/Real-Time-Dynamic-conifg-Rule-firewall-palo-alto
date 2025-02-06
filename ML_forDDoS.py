@@ -5,9 +5,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, accuracy_score
 
 # Load dataset!
-normal_data = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/session_infoNormal_clean.csv") 
-dos_data = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/session_infoDOS_clean.csv")
-ddos_data = pd.read_csv("D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/session_infoDDOS_clean.csv")
+normal_data = pd.read_csv("./dataset/session_infoNormal_clean.csv") 
+dos_data = pd.read_csv("./dataset/session_infoDOS_clean.csv")
+ddos_data = pd.read_csv("./dataset/session_infoDDOS_clean.csv")
  
  # Add new column 
 normal_data['state'] = 0
@@ -24,7 +24,7 @@ combined_data = pd.concat([normal_data[features + ['state']], # Add Attack_type 
 combined_data = combined_data.fillna(0).astype(int)
 
 # For check data
-combined_data.to_csv('D:/Real-Time-Dynamic-conifg-Rule-firewall-palo-alto/combined_data.csv', index=False)
+combined_data.to_csv('./dataset/combined_data.csv', index=False)
 
 
 # Define x and y data

@@ -33,8 +33,8 @@ while True:
     
     if session_data is not None:
         # Extract session statistics
-        cps, kbps, num_active, num_icmp, num_tcp, num_udp, pps = parse_info_sessions(session_data)
-        session_count, unique_ip_count, zone_mapping = parse_act_sessions(actsession_data)
+        cps, kbps, num_active, num_icmp, num_tcp, num_udp, pps = map(int, parse_info_sessions(session_data))
+        session_count, unique_ip_count, zone_mapping = map(int, parse_info_sessions(session_data))
         
         # Prepare feature vector for ML prediction
         features = {

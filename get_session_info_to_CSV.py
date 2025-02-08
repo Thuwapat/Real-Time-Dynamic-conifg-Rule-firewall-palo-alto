@@ -35,13 +35,13 @@ def main():
         # Extract session statistics
             cps, kbps, num_active, num_icmp, num_tcp, num_udp, pps = parse_info_sessions(session_data)
             parsed_data = {
-                cps,
-                kbps,
-                num_active,
-                num_icmp,
-                num_tcp,
-                num_udp,
-                pps
+                "cps": cps,
+                "kbps": kbps,
+                "num_active": num_active,
+                "num_icmp": num_icmp,
+                "num_tcp": num_tcp,
+                "num_udp": num_udp,
+                "pps": pps
             }
             
             # Parse active session data to get unique IPs

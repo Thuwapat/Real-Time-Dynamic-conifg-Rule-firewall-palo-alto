@@ -39,7 +39,7 @@ def main():
         
         # Fetch session data using function from session_funct.py
         session_data = fetch_info_sessions(firewall_ip, api_key)
-        actsession_data = fetch_active_sessions(firewall_ip, api_key)
+        #actsession_data = fetch_active_sessions(firewall_ip, api_key)
         
         if session_data is not None:
         # Extract session statistics
@@ -55,9 +55,9 @@ def main():
             }
             
             # Parse active session data to get unique IPs
-            actsession_count, unique_src_count, unique_dst_count, zone_mapping = parse_act_sessions(actsession_data)
-            parsed_data["unique_source_ips"] = unique_src_count
-            parsed_data["unique_destination_ips"] = unique_dst_count
+            #actsession_count, unique_src_count, unique_dst_count, zone_mapping = parse_act_sessions(actsession_data)
+            #parsed_data["unique_source_ips"] = unique_src_count
+            #parsed_data["unique_destination_ips"] = unique_dst_count
             
             # Save parsed data to CSV
             save_to_csv(parsed_data)

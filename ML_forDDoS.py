@@ -47,9 +47,14 @@ x_test = pd.DataFrame(x_test_scaled, columns=x.columns)
 rf_classifier = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)
 rf_classifier.fit(x_train, y_train)
 
+
+with open('scaler.pkl', 'wb') as scaler_file:
+    pickle.dump(scaler, scaler_file)
+
 # Save the trained model
 with open('dos_detection_model.pkl', 'wb') as model_file:
     pickle.dump(rf_classifier, model_file)
+
 
 # Make predictions
 y_pred = rf_classifier.predict(x_test)

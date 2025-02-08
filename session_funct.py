@@ -54,24 +54,21 @@ def fetch_active_sessions(firewall_ip, api_key):
 def parse_act_sessions(actsession_data):
     actsession_count = defaultdict(int)
     unique_source_ips = set()
-    unique_dest_ips = set()
     zone_mapping = {}
 
     # Find all session entries
     actsessions = actsession_data.findall(".//entry")
     for actsession in actsessions:
         source_ip = actsession.find('source').text
-        dest_ip = actsession.find('dst').text
         src_zone = actsession.find('from').text
         dst_zone = actsession.find('to').text
 
         if source_ip:
             actsession_count[source_ip] += 1
             unique_source_ips.add(source_ip)
-            unique_dest_ips.add(dest_ip)
             zone_mapping[source_ip] = (src_zone, dst_zone)
             
-    return actsession_count, len(unique_source_ips), len(unique_dest_ips), zone_mapping
+    return actsession_count, len(unique_source_ips), zone_mapping
 
 # Parse session statistics for ML-based detection.
 def parse_info_sessions(session_data):

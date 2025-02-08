@@ -52,13 +52,15 @@ while True:
 
         feature_vector = pd.DataFrame([features])
         feature_vector_scaled = scaler.transform(feature_vector)
+        feature_vector_scaled_df = pd.DataFrame(feature_vector_scaled, columns=feature_vector.columns)
+
         #print(ml_model.feature_names_in_)
         
         #print(feature_vector)
         #print(feature_vector_scaled)
 
         # Predict attack type
-        predicted_attack = ml_model.predict(feature_vector_scaled)[0]
+        predicted_attack = ml_model.predict(feature_vector_scaled_df)[0]
         print(f"Predicted Attack Type: {predicted_attack}")
 
 

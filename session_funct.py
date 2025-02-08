@@ -74,13 +74,13 @@ def parse_act_sessions(actsession_data):
 def parse_info_sessions(session_data):
     sessions = session_data.findall(".//result")
     for session in sessions:
-        cps = session.find('cps').text
-        kbps = session.find('kbps').text
-        num_active = session.find('num-active').text
-        num_icmp = session.find('num-icmp').text
-        num_tcp = session.find('num-tcp').text
-        num_udp = session.find('num-udp').text
-        pps = session.find('pps').text
+        cps = int(session.find('cps').text)
+        kbps = int(session.find('kbps').text)
+        num_active = int(session.find('num-active').text)
+        num_icmp = int(session.find('num-icmp').text)
+        num_tcp = int(session.find('num-tcp').text)
+        num_udp = int(session.find('num-udp').text)
+        pps = int(session.find('pps').text)
     return cps, kbps, num_active, num_icmp, num_tcp, num_udp, pps
 
 

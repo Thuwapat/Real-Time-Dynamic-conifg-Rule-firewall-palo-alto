@@ -36,8 +36,12 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.9, stratif
 
 # Optional: Feature Scaling (Uncomment if needed)
 scaler = StandardScaler()
-x_train = scaler.fit_transform(x_train)
-x_test = scaler.transform(x_test)
+x_train_scaled = scaler.fit_transform(x_train)
+x_test_scaled = scaler.transform(x_test)
+
+# Convert back to DataFrame (preserving feature names)
+x_train = pd.DataFrame(x_train_scaled, columns=x.columns)
+x_test = pd.DataFrame(x_test_scaled, columns=x.columns)
 
 # Train a Random Forest Classifier (Optimized)
 rf_classifier = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)

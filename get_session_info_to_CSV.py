@@ -16,12 +16,14 @@ def save_to_csv(data, folder = "dataset", filename="session_infoNormal.csv"):
         os.makedirs(folder)
 
     file_path = os.path.join(folder, filename)
+
     df = pd.DataFrame([data])
+    
     try:
-        with open(filename, "r", encoding="utf-8") as file:
-            df.to_csv(filename, mode="a", index=False, header=False, encoding="utf-8")
+        with open(file_path, "r", encoding="utf-8") as file:
+            df.to_csv(file_path, mode="a", index=False, header=False, encoding="utf-8")
     except FileNotFoundError:
-        df.to_csv(filename, mode="w", index=False, header=True, encoding="utf-8")
+        df.to_csv(file_path, mode="w", index=False, header=True, encoding="utf-8")
 
 # Main function to collect session data
 def main():

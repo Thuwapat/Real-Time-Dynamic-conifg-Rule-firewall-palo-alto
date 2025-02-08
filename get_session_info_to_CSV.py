@@ -1,6 +1,6 @@
 import pandas as pd
 import time
-from session_funct import fetch_info_sessions, fetch_active_sessions, parse_act_sessions  # Import functions from session_funct
+from session_funct import fetch_info_sessions, fetch_active_sessions, parse_act_sessions, parse_info_sessions  # Import functions from session_funct
 
 # Palo Alto Firewall Configuration
 firewall_ip = "192.168.15.5"
@@ -31,16 +31,17 @@ def main():
         session_data = fetch_info_sessions(firewall_ip, api_key)
         actsession_data = fetch_active_sessions(firewall_ip, api_key)
         
-        if session_data and actsession_data:
-            # Parse the session data
+        if session_data is not None:
+        # Extract session statistics
+            cps, kbps, num_active, num_icmp, num_tcp, num_udp, pps = parse_info_sessions(session_data)
             parsed_data = {
-                "cps": session_data.find('cps').text if session_data.find('cps') else '0',
-                "kbps": session_data.find('kbps').text if session_data.find('kbps') else '0',
-                "num-active": session_data.find('num-active').text if session_data.find('num-active') else '0',
-                "num-icmp": session_data.find('num-icmp').text if session_data.find('num-icmp') else '0',
-                "num-tcp": session_data.find('num-tcp').text if session_data.find('num-tcp') else '0',
-                "num-udp": session_data.find('num-udp').text if session_data.find('num-udp') else '0',
-                "pps": session_data.find('pps').text if session_data.find('pps') else '0'
+                cps,
+                kbps,
+                num_active,
+                num_icmp,
+                num_tcp,
+                num_udp,
+                pps
             }
             
             # Parse active session data to get unique IPs

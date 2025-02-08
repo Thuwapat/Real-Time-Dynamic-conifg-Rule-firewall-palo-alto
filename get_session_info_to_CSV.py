@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import requests
 import time
 from session_funct import fetch_info_sessions, fetch_active_sessions, parse_act_sessions, parse_info_sessions  # Import functions from session_funct
@@ -10,7 +11,11 @@ api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFna
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 # Function to save session data to CSV
-def save_to_csv(data, filename="session_infoNormal.csv"):
+def save_to_csv(data, folder = "dataset", filename="session_infoNormal.csv"):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    file_path = os.path.join(folder, filename)
     df = pd.DataFrame([data])
     try:
         with open(filename, "r", encoding="utf-8") as file:

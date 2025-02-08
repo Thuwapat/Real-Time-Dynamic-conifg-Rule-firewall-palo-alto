@@ -1,10 +1,13 @@
 import pandas as pd
+import requests
 import time
 from session_funct import fetch_info_sessions, fetch_active_sessions, parse_act_sessions, parse_info_sessions  # Import functions from session_funct
 
 # Palo Alto Firewall Configuration
 firewall_ip = "192.168.15.5"
 api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="
+
+requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 # Function to save session data to CSV
 def save_to_csv(data, filename="session_infoNormal.csv"):

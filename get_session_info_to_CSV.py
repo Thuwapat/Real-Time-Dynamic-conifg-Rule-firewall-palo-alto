@@ -44,9 +44,9 @@ def main():
             }
             
             # Parse active session data to get unique IPs
-            unique_ips_count, zone_mapping = parse_act_sessions(actsession_data)
-            parsed_data["unique_source_ips"] = unique_ips_count
-            parsed_data["unique_destination_ips"] = len(set(zone_mapping.values()))
+            actsession_count, unique_src_count, unique_dst_count, zone_mapping = parse_act_sessions(actsession_data)
+            parsed_data["unique_source_ips"] = unique_src_count
+            parsed_data["unique_destination_ips"] = unique_dst_count
             
             # Save parsed data to CSV
             save_to_csv(parsed_data)

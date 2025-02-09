@@ -46,16 +46,18 @@ while True:
             'num-udp': num_udp,
             'pps': pps
         }
+
+        with open('scaler.pkl', 'rb') as scaler_file:
+            scaler = pickle.load(scaler_file)
+
         feature_vector = pd.DataFrame([features])
-
-        # Align feature vector with model's training feature names
-        feature_vector = feature_vector.reindex(columns=ml_model.feature_names_in_, fill_value=0)
-
-        feature_vector = [[features[feat] for feat in ml_model.feature_names_in_]]
+        #feature_vector_scaled = scaler.transform(feature_vector)
+        #feature_vector_scaled_df = pd.DataFrame(feature_vector_scaled, columns=feature_vector.columns)
 
         #print(ml_model.feature_names_in_)
-        #
-        #print(feature_vector)
+        
+        print(feature_vector)
+        #print(feature_vector_scaled)
 
         # Predict attack type
         predicted_attack = ml_model.predict(feature_vector)[0]
@@ -63,20 +65,20 @@ while True:
 
 
         # Trigger protections based on predictions
-        if predicted_attack == "1":  # DoS attack
+        if predicted_attack == 1:  # DoS attack
             print(">>>>>>>> DoS Detected by ML !!!!! <<<<<<<<")
             for src_ip, count in session_count.items():
                 src_zone, dst_zone = zone_mapping[src_ip]
                 rule_name = f"Block_IP_{src_ip.replace('.', '_')}"
-                create_dos_profile(firewall_ip, api_key, existing_rules)
-                create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
+                #create_dos_profile(firewall_ip, api_key, existing_rules)
+                #create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
 
-        elif predicted_attack == "2":  # DDoS attack
+        elif predicted_attack == 2:  # DDoS attack
             print(">>>>>>>>> DDoS Detected by ML !!!!!! <<<<<<<<")
             for src_ip, (src_zone, dst_zone) in zone_mapping.items():
                 rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
-                create_dos_profile(api_key)
-                create_ddos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
+                #create_dos_profile(firewall_ip, api_key, existing_rules)
+                #create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)
                 break # for stop dulicate Zone rules
 
     else:

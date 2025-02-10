@@ -8,31 +8,32 @@ from check_importance import *
 
 
 # Load datasets
-normal_data = pd.read_csv("./dataset/session_infoNormal_clean.csv") 
-dos_data = pd.read_csv("./dataset/session_infoDOS_clean.csv")
-ddos_data = pd.read_csv("./dataset/session_infoDDOS_clean.csv")
-
-# Add target column
-normal_data['state'] = 0
-dos_data['state'] = 1
-ddos_data['state'] = 2
+#normal_data = pd.read_csv("./dataset/session_infoNormal_clean.csv") 
+#dos_data = pd.read_csv("./dataset/session_infoDOS_clean.csv")
+#ddos_data = pd.read_csv("./dataset/session_infoDDOS_clean.csv")
+#
+## Add target column
+#normal_data['state'] = 0
+#dos_data['state'] = 1
+#ddos_data['state'] = 2
 
 # Features for training
 features = ['cps', 'kbps', 'num-active', 'num-icmp', 'num-tcp', 'num-udp', 'pps']
-combined_data = pd.concat([normal_data[features + ['state']],
-                           dos_data[features + ['state']],
-                           ddos_data[features + ['state']]])
+#combined_data = pd.concat([normal_data[features + ['state']],
+#                           dos_data[features + ['state']],
+#                           ddos_data[features + ['state']]])
 
+combined_data = pd.read_csv("./dataset/train_dataset.csv")
 combined_data = combined_data.fillna(0).astype(int)
 
 combined_data.to_csv('./dataset/combined_data.csv', index=False)
 
 # Define X and y
-x = combined_data.drop(columns=['state'])
-y = combined_data['state']
+x = combined_data.drop(columns=['label'])
+y = combined_data['label']
 
 # Split data (adjusted test size for better generalization)
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.9, stratify=y, random_state=42)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.8, stratify=y, random_state=42)
 
 # Optional: Feature Scaling (Uncomment if needed)
 #scaler = StandardScaler()

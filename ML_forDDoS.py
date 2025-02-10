@@ -23,17 +23,17 @@ features = ['cps', 'kbps', 'num_active', 'num_icmp', 'num_tcp', 'num_udp', 'pps'
 #                           dos_data[features + ['state']],
 #                           ddos_data[features + ['state']]])
 
-combined_data = pd.read_csv("./dataset/Balanced_Dataset_for_ML_Training.csv")
+combined_data = pd.read_csv("./dataset/Balanced_ML_Dataset.csv")
 combined_data = combined_data.fillna(0).astype(int)
 
-combined_data.to_csv('./dataset/combined_data.csv', index=False)
+#combined_data.to_csv('./dataset/combined_data.csv', index=False)
 
 # Define X and y
 x = combined_data.drop(columns=['label'])
 y = combined_data['label']
 
 # Split data (adjusted test size for better generalization)
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.8, stratify=y, random_state=42)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.9, stratify=y, random_state=42)
 
 # Optional: Feature Scaling (Uncomment if needed)
 scaler = StandardScaler()

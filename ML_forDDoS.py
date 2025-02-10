@@ -18,7 +18,7 @@ from check_importance import *
 #ddos_data['state'] = 2
 
 # Features for training
-features = ['cps', 'kbps', 'num-active', 'num-icmp', 'num-tcp', 'num-udp', 'pps']
+features = ['cps', 'kbps', 'num_active', 'num_icmp', 'num_tcp', 'num_udp', 'pps']
 #combined_data = pd.concat([normal_data[features + ['state']],
 #                           dos_data[features + ['state']],
 #                           ddos_data[features + ['state']]])

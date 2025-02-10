@@ -40,15 +40,15 @@ while True:
         features = {
             'cps': cps,
             'kbps': kbps,
-            'num-active': num_active,
-            'num-icmp': num_icmp,
-            'num-tcp': num_tcp,
-            'num-udp': num_udp,
+            'num_active': num_active,
+            'num_icmp': num_icmp,
+            'num_tcp': num_tcp,
+            'num_udp': num_udp,
             'pps': pps
         }
 
-        with open('scaler.pkl', 'rb') as scaler_file:
-            scaler = pickle.load(scaler_file)
+        #with open('scaler.pkl', 'rb') as scaler_file:
+        #    scaler = pickle.load(scaler_file)
 
         feature_vector = pd.DataFrame([features])
         #feature_vector_scaled = scaler.transform(feature_vector)

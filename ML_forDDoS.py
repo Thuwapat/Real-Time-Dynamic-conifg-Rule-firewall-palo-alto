@@ -23,7 +23,7 @@ features = ['cps', 'kbps', 'num_active', 'num_icmp', 'num_tcp', 'num_udp', 'pps'
 #                           dos_data[features + ['state']],
 #                           ddos_data[features + ['state']]])
 
-combined_data = pd.read_csv("./dataset/Balanced_ML_Training_Dataset.csv")
+combined_data = pd.read_csv("./dataset/Balanced_Dataset_for_ML_Training.csv")
 combined_data = combined_data.fillna(0).astype(int)
 
 combined_data.to_csv('./dataset/combined_data.csv', index=False)

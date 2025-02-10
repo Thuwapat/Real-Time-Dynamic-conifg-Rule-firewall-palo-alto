@@ -11,7 +11,7 @@ api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFna
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 # Function to save session data to CSV
-def save_to_csv(data, folder = "dataset", filename="session_infoNormal.csv"):
+def save_to_csv(data, folder = "dataset", filename="session_info_Dos_TCP"):
     if not os.path.exists(folder):
         os.makedirs(folder)
 
@@ -27,7 +27,7 @@ def save_to_csv(data, folder = "dataset", filename="session_infoNormal.csv"):
 
 # Main function to collect session data
 def main():
-    duration = 15 * 60  # Run for 15 minutes
+    duration = 20*60
     start_time = time.time()
     print("Starting data collection for 15 minutes...")
     
@@ -63,7 +63,7 @@ def main():
             save_to_csv(parsed_data)
             print("Saved data:", parsed_data)
         
-        time.sleep(0.25)  # Collect data every 0.25 seconds
+        time.sleep(0.10)
 
 if __name__ == "__main__":
     main()

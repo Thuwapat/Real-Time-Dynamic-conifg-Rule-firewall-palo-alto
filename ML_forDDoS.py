@@ -36,21 +36,21 @@ y = combined_data['label']
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.8, stratify=y, random_state=42)
 
 # Optional: Feature Scaling (Uncomment if needed)
-#scaler = StandardScaler()
-#x_train_scaled = scaler.fit_transform(x_train)
-#x_test_scaled = scaler.transform(x_test)
+scaler = StandardScaler()
+x_train_scaled = scaler.fit_transform(x_train)
+x_test_scaled = scaler.transform(x_test)
 
 # Convert back to DataFrame (preserving feature names)
-#x_train = pd.DataFrame(x_train_scaled, columns=x.columns)
-#x_test = pd.DataFrame(x_test_scaled, columns=x.columns)
+x_train = pd.DataFrame(x_train_scaled, columns=x.columns)
+x_test = pd.DataFrame(x_test_scaled, columns=x.columns)
 
 # Train a Random Forest Classifier (Optimized)
 rf_classifier = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)
 rf_classifier.fit(x_train, y_train)
 
 
-#with open('scaler.pkl', 'wb') as scaler_file:
-#    pickle.dump(scaler, scaler_file)
+with open('scaler.pkl', 'wb') as scaler_file:
+    pickle.dump(scaler, scaler_file)
 
 # Save the trained model
 with open('dos_detection_model.pkl', 'wb') as model_file:

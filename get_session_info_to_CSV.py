@@ -11,7 +11,7 @@ api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFna
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 # Function to save session data to CSV
-def save_to_csv(data, folder = "dataset", filename="session_info_Dos_TCP"):
+def save_to_csv(data, folder = "dataset", filename="session_info_Dos_TCP.csv"):
     if not os.path.exists(folder):
         os.makedirs(folder)
 

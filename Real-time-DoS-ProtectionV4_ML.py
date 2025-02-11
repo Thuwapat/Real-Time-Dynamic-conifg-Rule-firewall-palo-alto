@@ -40,10 +40,10 @@ while True:
         features = {
             'cps': cps,
             'kbps': kbps,
-            'num-active': num_active,
-            'num-icmp': num_icmp,
-            'num-tcp': num_tcp,
-            'num-udp': num_udp,
+            'num_active': num_active,
+            'num_icmp': num_icmp,
+            'num_tcp': num_tcp,
+            'num_udp': num_udp,
             'pps': pps
         }
 

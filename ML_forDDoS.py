@@ -8,43 +8,44 @@ from check_importance import *
 
 
 # Load datasets
-normal_data = pd.read_csv("./dataset/session_infoNormal_clean.csv") 
-dos_data = pd.read_csv("./dataset/session_infoDOS_clean.csv")
-ddos_data = pd.read_csv("./dataset/session_infoDDOS_clean.csv")
-
-# Add target column
-normal_data['state'] = 0
-dos_data['state'] = 1
-ddos_data['state'] = 2
+#normal_data = pd.read_csv("./dataset/session_infoNormal_clean.csv") 
+#dos_data = pd.read_csv("./dataset/session_infoDOS_clean.csv")
+#ddos_data = pd.read_csv("./dataset/session_infoDDOS_clean.csv")
+#
+## Add target column
+#normal_data['state'] = 0
+#dos_data['state'] = 1
+#ddos_data['state'] = 2
 
 # Features for training
-features = ['cps', 'kbps', 'num-active', 'num-icmp', 'num-tcp', 'num-udp', 'pps']
-combined_data = pd.concat([normal_data[features + ['state']],
-                           dos_data[features + ['state']],
-                           ddos_data[features + ['state']]])
+features = ['cps', 'kbps', 'num_active', 'num_icmp', 'num_tcp', 'num_udp', 'pps']
+#combined_data = pd.concat([normal_data[features + ['state']],
+#                           dos_data[features + ['state']],
+#                           ddos_data[features + ['state']]])
 
+combined_data = pd.read_csv("./dataset/train_dataset.csv")
 combined_data = combined_data.fillna(0).astype(int)
 
-combined_data.to_csv('./dataset/combined_data.csv', index=False)
+#combined_data.to_csv('./dataset/combined_data.csv', index=False)
 
 # Define X and y
-x = combined_data.drop(columns=['state'])
-y = combined_data['state']
+x = combined_data.drop(columns=['label'])
+y = combined_data['label']
 
 # Split data (adjusted test size for better generalization)
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.9, stratify=y, random_state=42)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.75, stratify=y, random_state=42)
 
 # Optional: Feature Scaling (Uncomment if needed)
 #scaler = StandardScaler()
 #x_train_scaled = scaler.fit_transform(x_train)
 #x_test_scaled = scaler.transform(x_test)
 
-# Convert back to DataFrame (preserving feature names)
+## Convert back to DataFrame (preserving feature names)
 #x_train = pd.DataFrame(x_train_scaled, columns=x.columns)
 #x_test = pd.DataFrame(x_test_scaled, columns=x.columns)
 
 # Train a Random Forest Classifier (Optimized)
-rf_classifier = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)
+rf_classifier = RandomForestClassifier(n_estimators=100, max_depth=10, max_features="sqrt",max_leaf_nodes=10, random_state=42)
 rf_classifier.fit(x_train, y_train)
 
 

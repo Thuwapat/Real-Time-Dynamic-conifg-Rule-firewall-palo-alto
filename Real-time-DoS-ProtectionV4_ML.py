@@ -9,7 +9,7 @@ from rules_config_funct import *
 firewall_ip = "192.168.15.5"
 api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="
 
-POLL_INTERVAL = 1  # Seconds
+POLL_INTERVAL =  2 # Seconds
 
 #SESSION_THRESHOLD = 20  # Active session-per-IP threshold
 #UNIQUE_IP_THRESHOLD = 1000  # Unique source IP threshold

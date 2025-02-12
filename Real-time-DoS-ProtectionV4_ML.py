@@ -12,7 +12,7 @@ api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFna
 POLL_INTERVAL = 1  # Seconds
 
 #SESSION_THRESHOLD = 20  # Active session-per-IP threshold
-#UNIQUE_IP_THRESHOLD = 1000  # Unique source IP threshold
+UNIQUE_IP_THRESHOLD = 1024  # Unique source IP threshold
 
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)

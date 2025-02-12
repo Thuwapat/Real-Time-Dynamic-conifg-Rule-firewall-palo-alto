@@ -10,9 +10,7 @@ firewall_ip = "192.168.15.5"
 api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="
 
 POLL_INTERVAL = 1  # Seconds
-
-#SESSION_THRESHOLD = 20  # Active session-per-IP threshold
-#UNIQUE_IP_THRESHOLD = 1000  # Unique source IP threshold
+UNIQUE_IP_THRESHOLD = 1024  # Unique source IP threshold
 
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -65,7 +63,7 @@ while True:
 
 
         # Trigger protections based on predictions
-        if predicted_attack == 1:  # DoS attack
+        if predicted_attack == 1 & unique_ip_count < UNIQUE_IP_THRESHOLD:  # DoS attack
             print(">>>>>>>> DoS Detected by ML !!!!! <<<<<<<<")
             for src_ip, count in session_count.items():
                 src_zone, dst_zone = zone_mapping[src_ip]

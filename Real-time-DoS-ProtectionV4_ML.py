@@ -12,7 +12,7 @@ api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFna
 POLL_INTERVAL = 1  # Seconds
 
 #SESSION_THRESHOLD = 20  # Active session-per-IP threshold
-#UNIQUE_IP_THRESHOLD = 1000  # Unique source IP threshold
+UNIQUE_IP_THRESHOLD = 1024 # Unique source IP threshold
 
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -73,7 +73,7 @@ while True:
                 #create_dos_profile(firewall_ip, api_key, existing_rules)
                 #create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
 
-        elif predicted_attack == 2:  # DDoS attack
+        elif predicted_attack == 2 & unique_ip_count >= UNIQUE_IP_THRESHOLD:  # DDoS attack
             print(">>>>>>>>> DDoS Detected by ML !!!!!! <<<<<<<<")
             for src_ip, (src_zone, dst_zone) in zone_mapping.items():
                 rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"

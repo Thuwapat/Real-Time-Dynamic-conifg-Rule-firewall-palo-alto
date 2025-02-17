@@ -1,5 +1,5 @@
 import requests
-
+import xml.etree.ElementTree as ET
 # Function to create a DoS profile using REST API
 def create_dos_profile(firewall_ip, api_key, existing_rules):
     profile_name = "default-profile"
@@ -154,4 +154,4 @@ def commit_changes(firewall_ip, api_key, force=False):
         else:
             print(f"Failed to commit changes: HTTP {response.status_code} - {response.text}")
     except Exception as e:
-        print(f"Error committing changes: {e}")
+        print(f"Error committing changes: {e}")  

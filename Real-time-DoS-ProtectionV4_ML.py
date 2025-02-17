@@ -4,6 +4,7 @@ import pickle
 import pandas as pd
 from session_funct import *
 from rules_config_funct import *
+from rules_manager import *
 import os 
 
 # Palo Alto firewall credentials and IP
@@ -73,6 +74,7 @@ while True:
                 rule_name = f"Block_IP_{src_ip.replace('.', '_')}"
                 create_dos_profile(firewall_ip, api_key, existing_rules)
                 create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
+                
         elif predicted_attack == 2 & unique_ip_count >= UNIQUE_IP_THRESHOLD:  # DDoS attack
             print(">>>>>>>>> DDoS Detected by ML !!!!!! <<<<<<<<")
             print(existing_rules)

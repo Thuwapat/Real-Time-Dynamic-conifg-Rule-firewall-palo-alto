@@ -11,8 +11,6 @@ api_key = os.environ.get("API_KEY_PALO_ALTO")
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 existing_rules = {"DDOSS", "Block_Zone_Trust_to_Untrust"}
 
-import requests
-import xml.etree.ElementTree as ET
 
 def get_rule_last_hit_payload(rule_name):
     """

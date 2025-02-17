@@ -9,7 +9,7 @@ api_key = os.environ.get("API_KEY_PALO_ALTO")
 
 # Disable SSL warnings (optional but recommended for testing environments)
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
-existing_rules = {"Block_IP_192_168_1_10", "Block_Zone_Trust_to_Untrust"}
+existing_rules = {"DDOSS", "Block_Zone_Trust_to_Untrust"}
 
 import requests
 import xml.etree.ElementTree as ET

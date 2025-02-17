@@ -12,7 +12,7 @@ api_key = os.environ.get("API_KEY_PALO_ALTO")
 POLL_INTERVAL = 1  # Seconds
 
 #SESSION_THRESHOLD = 20  # Active session-per-IP threshold
-UNIQUE_IP_THRESHOLD = 1024 # Unique source IP threshold
+UNIQUE_IP_THRESHOLD = 1020 # Unique source IP threshold
 
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -67,18 +67,19 @@ while True:
         # Trigger protections based on predictions
         if predicted_attack == 1:  # DoS attack
             print(">>>>>>>> DoS Detected by ML !!!!! <<<<<<<<")
+            print(existing_rules)
             for src_ip, count in session_count.items():
                 src_zone, dst_zone = zone_mapping[src_ip]
                 rule_name = f"Block_IP_{src_ip.replace('.', '_')}"
                 create_dos_profile(firewall_ip, api_key, existing_rules)
                 create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
-
         elif predicted_attack == 2 & unique_ip_count >= UNIQUE_IP_THRESHOLD:  # DDoS attack
             print(">>>>>>>>> DDoS Detected by ML !!!!!! <<<<<<<<")
+            print(existing_rules)
             for src_ip, (src_zone, dst_zone) in zone_mapping.items():
                 rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
                 create_dos_profile(firewall_ip, api_key, existing_rules)
-                create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)
+                create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)   
                 break # for stop dulicate Zone rules
 
     else:

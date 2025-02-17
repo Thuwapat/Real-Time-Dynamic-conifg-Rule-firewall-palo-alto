@@ -146,11 +146,6 @@ def check_and_remove_rule(rule_name):
             else:
                 print(f"Rule {rule_name} is active. Last hit time: {last_hit} (current time: {current_time}).")
         else:
-<<<<<<< HEAD
-            print(f"Error for rule {rule}:", result)
-    # รอ 5 วินาที ก่อนทำการ query ครั้งถัดไป
-    time.sleep(1)
-=======
             print(f"Could not find last-hit-timestamp for rule {rule_name}.")
     else:
         print(f"Error retrieving data for rule {rule_name}: {result}")
@@ -164,4 +159,3 @@ while True:
         check_and_remove_rule(rule)
     # รอ 5 วินาทีก่อนตรวจสอบรอบต่อไป
     time.sleep(5)
->>>>>>> 50691f55c784f636ae4a3f31157fb0bb71af660f

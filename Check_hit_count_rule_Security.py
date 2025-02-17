@@ -1,4 +1,5 @@
 import os
+import time
 import requests
 import xml.etree.ElementTree as ET
 import urllib.parse
@@ -64,11 +65,35 @@ def get_rule_last_hit_payload(rule_name):
             return f"XML Parse Error: {e}"
     else:
         return f"HTTP Error: {response.status_code}"
+    
+    
+def extract_rule_creation_timestamp(xml_root, rule_name):
+    """
+    ดึงค่า <rule-creation-timestamp> จาก XML ที่ส่งกลับมาสำหรับ rule ที่ระบุ
+    """
+    # ตัวอย่าง XML ที่ได้จะมีโครงสร้าง <entry name="rule_name"> ... <rule-creation-timestamp>value</rule-creation-timestamp> ...
+    # เราสามารถใช้ XPath เพื่อตามหา element ที่ต้องการ
+    # หากชื่อ rule ใน XML ไม่ได้เป็น attribute name ของ entry โดยตรง (เช่นในตัวอย่าง XML, entry name="DDOSS")
+    # ให้ปรับ XPath ให้ตรงกับโครงสร้างที่แท้จริง
+    rule_entry = xml_root.find(f".//entry[@name='{rule_name}']")
+    if rule_entry is not None:
+        ts_elem = rule_entry.find("rule-creation-timestamp")
+        if ts_elem is not None:
+            return ts_elem.text
+    return None
 
-# ตัวอย่างการใช้งาน
-result = get_rule_last_hit_payload("DDOSS")
-if isinstance(result, ET.Element):
-    print("Rule hit information fetched successfully (using POST payload).")
-    ET.dump(result)  # แสดงข้อมูล XML ทั้งหมด
-else:
-    print("Error occurred:", result)
+# Loop เพื่อดึงข้อมูลของแต่ละ rule ทุก ๆ 5 วินาที
+while True:
+    print("------ Checking rule creation timestamps ------")
+    for rule in existing_rules:
+        result = get_rule_last_hit_payload(rule)
+        if isinstance(result, ET.Element):
+            timestamp = extract_rule_creation_timestamp(result, rule)
+            if timestamp:
+                print(f"Rule: {rule} | Rule Creation Timestamp: {timestamp}")
+            else:
+                print(f"Rule: {rule} | rule-creation-timestamp not found.")
+        else:
+            print(f"Error for rule {rule}:", result)
+    # รอ 5 วินาที ก่อนทำการ query ครั้งถัดไป
+    time.sleep(5)

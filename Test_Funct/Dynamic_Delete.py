@@ -1,10 +1,11 @@
 import requests
 import json
 import time
+import os
 
 # Palo Alto firewall credentials and IP
-firewall_ip = "https://192.168.11.100"
-api_key = "LUFRPT1FM2lUb0U5ZFRacHdSZU9hS1pQOGp2VzVmRkk9MXhaQWdwVmlpVEFOUWV5Q3F1UzR2NkhUbW02YXFhT1Avb2xIYmJ5dGhnbCtNL1Z3L0hjdDJTTlhpRlJ5M0hMNg=="
+firewall_ip = os.environ.get("FIREWALL_IP")
+api_key = os.environ.get("API_KEY_PALO_ALTO")
 
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)

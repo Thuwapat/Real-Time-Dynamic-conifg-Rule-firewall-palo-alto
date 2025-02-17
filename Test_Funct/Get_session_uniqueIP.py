@@ -2,10 +2,11 @@ import requests
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 import time
+import os
 
 # Palo Alto firewall credentials and IP
-firewall_ip = "192.168.15.5"  # Replace with your firewall IP
-api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="  # Replace with your API key
+firewall_ip = os.environ.get("FIREWALL_IP")
+api_key = os.environ.get("API_KEY_PALO_ALTO")
 
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)

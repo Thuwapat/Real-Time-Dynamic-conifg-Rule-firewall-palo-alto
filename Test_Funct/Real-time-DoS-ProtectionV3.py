@@ -2,11 +2,11 @@ import requests
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 import time
+import os 
 
 # Palo Alto firewall credentials and IP
-firewall_ip = "192.168.15.5"  # Replace with your firewall IP
-api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="  # Replace with your API key
-
+firewall_ip = os.environ.get("FIREWALL_IP")
+api_key = os.environ.get("API_KEY_PALO_ALTO")
 # LINE Bot credentials
 LINE_API_URL = "https://api.line.me/v2/bot/message/push"
 LINE_ACCESS_TOKEN = "zzyg77lLEwdFNoOML9iGw2Rt8zufx5zBFU5ZceYORa70DLgbPc9AS04a+7W6/mLp8CLoYV0imejR4fGtFEs7VQLyLyLMBtjQgHt7kXMRNcUEGdmXV4OEPtPEMOPcWQDPKbHpTJXTS9eH0cBzROOsPQdB04t89/1O/w1cDnyilFU="  # Replace with your LINE access token

@@ -2,10 +2,11 @@ import requests
 import time
 from session_funct import *
 from rules_config_funct import *
+import os
 
 # Palo Alto firewall credentials and IP
-firewall_ip = "192.168.15.5" 
-api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="  
+firewall_ip = os.environ.get("FIREWALL_IP")
+api_key = os.environ.get("API_KEY_PALO_ALTO")
 
 POLL_INTERVAL = 1  # Secound
 SESSION_THRESHOLD = 20  # Act session-per-IP

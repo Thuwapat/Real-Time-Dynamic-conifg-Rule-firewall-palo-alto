@@ -1,11 +1,12 @@
 import requests
 import xml.etree.ElementTree as ET
+import os
 
 # Palo Alto firewall credentials and IP
-firewall_ip = "192.168.1.100"
-username = "user1-api"
-password = "admin123456"
-api_key = "LUFRPT1qODNlN290SGl3cFhuWDVsWGhPYmN6ckVWWGs9MXhaQWdwVmlpVEFOUWV5Q3F1UzR2NkhUbW02YXFhT1Avb2xIYmJ5dGhna2pqMXlZSW1aVzdJWkNQcUtVUXlHdg=="  # You can generate an API key from the Palo Alto GUI
+firewall_ip = os.environ.get("FIREWALL_IP")
+api_key = os.environ.get("API_KEY_PALO_ALTO")
+
+
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 

@@ -1,10 +1,11 @@
 import requests
 import pandas as pd
 import time
+import os
 
 # กำหนดค่าของ Firewall และ API Key
-firewall_ip = "192.168.15.5"
-api_key = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="
+firewall_ip = os.environ.get("FIREWALL_IP")
+api_key = os.environ.get("API_KEY_PALO_ALTO")
 url = f"https://{firewall_ip}/api/"
 
 # ฟังก์ชันสำหรับดึงข้อมูลจาก XML API

@@ -2,10 +2,11 @@ import requests
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 import time
+import os
 
 # Palo Alto firewall credentials and IP
-FIREWALL_IP = "192.168.15.5"  # Replace with your firewall IP
-API_KEY = "LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA=="  # Replace with your API key
+firewall_ip = os.environ.get("FIREWALL_IP")
+api_key = os.environ.get("API_KEY_PALO_ALTO")
 
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -16,11 +17,11 @@ def fetch_active_sessions():
     Fetch the active sessions from the Palo Alto firewall.
     Returns the session data in XML format or None in case of an error.
     """
-    url = f"https://{FIREWALL_IP}/api/"
+    url = f"https://{firewall_ip}/api/"
     payload = {
         'type': 'op',
         'cmd': '<show><session><all></all></session></show>',
-        'key': API_KEY
+        'key': api_key
     }
 
     try:

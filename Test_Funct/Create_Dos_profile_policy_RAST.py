@@ -1,10 +1,10 @@
 import requests
 import json
+import os
 
 # Palo Alto firewall credentials and IP
-firewall_ip = "192.168.1.100"
-api_key = "LUFRPT1zc1Q1VGZpeGNRWGNDbkswdTBUaStHNDdBZWM9TUk0c1htY1YrQVlTd3hvUmtvb1B2SDVqRTdOVHRGK1FuVWtrUksrQVdyckw0MktPSWo0RU1ONldlc0lqR2J3Wg=="
-api_key_admin1 = "LUFRPT1za25maERjYlBZM0lGek9JaG1LcE4zMWRUaXc9SU1nK0NKbHJDdnBWY3BPOEFNSzdlckhEbjlvZ2hYT1BhK3BMeUthOFViMVl3ZHc1UDJVVVZXNDg3VHNyYVc0Mg=="
+firewall_ip = os.environ.get("FIREWALL_IP")
+api_key = os.environ.get("API_KEY_PALO_ALTO")
 profile_name = "DDoS-Protection"
 rule_name = "rule_dos"
 # Disable SSL warnings

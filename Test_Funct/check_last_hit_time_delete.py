@@ -3,11 +3,11 @@ import json
 import time
 from datetime import datetime, timedelta
 import xml.etree.ElementTree as ET
+import os
 
 
-firewall_ip = "https://192.168.1.100"
-api_key = "LUFRPT1zc1Q1VGZpeGNRWGNDbkswdTBUaStHNDdBZWM9TUk0c1htY1YrQVlTd3hvUmtvb1B2SDVqRTdOVHRGK1FuVWtrUksrQVdyckw0MktPSWo0RU1ONldlc0lqR2J3Wg=="
-
+firewall_ip = os.environ.get("FIREWALL_IP")
+api_key = os.environ.get("API_KEY_PALO_ALTO")
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 

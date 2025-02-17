@@ -67,33 +67,95 @@ def get_rule_last_hit_payload(rule_name):
         return f"HTTP Error: {response.status_code}"
     
     
-def extract_rule_creation_timestamp(xml_root, rule_name):
-    """
-    ดึงค่า <rule-creation-timestamp> จาก XML ที่ส่งกลับมาสำหรับ rule ที่ระบุ
-    """
-    # ตัวอย่าง XML ที่ได้จะมีโครงสร้าง <entry name="rule_name"> ... <rule-creation-timestamp>value</rule-creation-timestamp> ...
-    # เราสามารถใช้ XPath เพื่อตามหา element ที่ต้องการ
-    # หากชื่อ rule ใน XML ไม่ได้เป็น attribute name ของ entry โดยตรง (เช่นในตัวอย่าง XML, entry name="DDOSS")
-    # ให้ปรับ XPath ให้ตรงกับโครงสร้างที่แท้จริง
-    rule_entry = xml_root.find(f".//entry[@name='{rule_name}']")
-    if rule_entry is not None:
-        ts_elem = rule_entry.find("rule-creation-timestamp")
-        if ts_elem is not None:
-            return ts_elem.text
-    return None
+# def extract_rule_creation_timestamp(xml_root, rule_name):
+#     """
+#     ดึงค่า <rule-creation-timestamp> จาก XML ที่ส่งกลับมาสำหรับ rule ที่ระบุ
+#     """
+#     # ตัวอย่าง XML ที่ได้จะมีโครงสร้าง <entry name="rule_name"> ... <rule-creation-timestamp>value</rule-creation-timestamp> ...
+#     # เราสามารถใช้ XPath เพื่อตามหา element ที่ต้องการ
+#     # หากชื่อ rule ใน XML ไม่ได้เป็น attribute name ของ entry โดยตรง (เช่นในตัวอย่าง XML, entry name="DDOSS")
+#     # ให้ปรับ XPath ให้ตรงกับโครงสร้างที่แท้จริง
+#     rule_entry = xml_root.find(f".//entry[@name='{rule_name}']")
+#     if rule_entry is not None:
+#         ts_elem = rule_entry.find("rule-creation-timestamp")
+#         if ts_elem is not None:
+#             return ts_elem.text
+#     return None
 
-# Loop เพื่อดึงข้อมูลของแต่ละ rule ทุก ๆ 5 วินาที
-while True:
-    print("------ Checking rule creation timestamps ------")
-    for rule in existing_rules:
-        result = get_rule_last_hit_payload(rule)
-        if isinstance(result, ET.Element):
-            timestamp = extract_rule_creation_timestamp(result, rule)
-            if timestamp:
-                print(f"Rule: {rule} | Rule Creation Timestamp: {timestamp}")
+# # Loop เพื่อดึงข้อมูลของแต่ละ rule ทุก ๆ 5 วินาที
+# while True:
+#     print("------ Checking rule creation timestamps ------")
+#     for rule in existing_rules:
+#         result = get_rule_last_hit_payload(rule)
+#         if isinstance(result, ET.Element):
+#             timestamp = extract_rule_creation_timestamp(result, rule)
+#             if timestamp:
+#                 print(f"Rule: {rule} | Rule Creation Timestamp: {timestamp}")
+#             else:
+#                 print(f"Rule: {rule} | rule-creation-timestamp not found.")
+#         else:
+#             print(f"Error for rule {rule}:", result)
+#     # รอ 5 วินาที ก่อนทำการ query ครั้งถัดไป
+#     time.sleep(5)
+
+def delete_rule(rule_name):
+    """
+    ส่งคำสั่งลบ rule ออกจาก firewall ผ่าน API
+    (ตัวอย่างนี้ใช้ XML command deletion ผ่าน XPath ตามที่ API ของ Palo Alto อนุญาต)
+    """
+    # ตัวอย่าง XML command deletion โดยใช้ xpath
+    xpath = f"/config/devices/entry/vsys/entry/rule-base/entry[@name='dos']/rules/entry[@name='{rule_name}']"
+    payload = {
+        'type': 'config',
+        'action': 'delete',
+        'key': api_key,
+        'xpath': xpath
+    }
+    url = f"https://{firewall_ip}/api/"
+    
+    try:
+        response = requests.post(url, data=payload, verify=False, timeout=10)
+    except Exception as e:
+        return f"Error during deletion: {e}"
+    
+    return response.text
+
+def check_and_remove_rule(rule_name):
+    """
+    ตรวจสอบ last hit time ของ rule หากไม่ได้ถูก hit เป็นเวลาเกิน 60 วินาที (หรือค่าเป็น 0)
+    ให้ลบ rule ทั้งใน firewall และจาก existing_rules
+    """
+    result = get_rule_last_hit_payload(rule_name)
+    if isinstance(result, ET.Element):
+        # ค้นหาค่า last-hit-timestamp
+        ts_elem = result.find(".//last-hit-timestamp")
+        if ts_elem is not None:
+            try:
+                last_hit = int(ts_elem.text)
+            except ValueError:
+                print(f"Invalid last-hit-timestamp for rule {rule_name}: {ts_elem.text}")
+                return
+            current_time = int(time.time())
+            # หาก last_hit เป็น 0 (ยังไม่มีการ hit) หรือไม่ได้ hit เกิน 60 วินาที
+            if  (current_time - last_hit > 60):
+                print(f"Rule {rule_name} is inactive for over 60 seconds (last hit: {last_hit}). Deleting rule.")
+                # deletion_response = delete_rule(rule_name)
+                # print("Deletion response:", deletion_response)
+                # ลบ rule จาก existing_rules
+                existing_rules.remove(rule_name)
             else:
-                print(f"Rule: {rule} | rule-creation-timestamp not found.")
+                print(f"Rule {rule_name} is active. Last hit time: {last_hit} (current time: {current_time}).")
         else:
-            print(f"Error for rule {rule}:", result)
-    # รอ 5 วินาที ก่อนทำการ query ครั้งถัดไป
+            print(f"Could not find last-hit-timestamp for rule {rule_name}.")
+    else:
+        print(f"Error retrieving data for rule {rule_name}: {result}")
+
+# Loop หลัก เพื่อตรวจสอบ rule ทุกๆ 5 วินาที
+while True:
+    print("------ Checking rules ------")
+    # ทำสำเนาของ existing_rules เพื่อป้องกันปัญหาในขณะที่ลูป (เนื่องจากเราจะลบ rule ออก)
+    rules_to_check = list(existing_rules)
+    for rule in rules_to_check:
+        check_and_remove_rule(rule)
+    # รอ 5 วินาทีก่อนตรวจสอบรอบต่อไป
     time.sleep(5)

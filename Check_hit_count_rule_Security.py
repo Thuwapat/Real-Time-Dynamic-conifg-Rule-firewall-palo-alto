@@ -96,4 +96,4 @@ while True:
         else:
             print(f"Error for rule {rule}:", result)
     # รอ 5 วินาที ก่อนทำการ query ครั้งถัดไป
-    time.sleep(5)
+    time.sleep(1)

@@ -142,7 +142,7 @@ def check_and_remove_rule(rule_name):
                 # deletion_response = delete_rule(rule_name)
                 # print("Deletion response:", deletion_response)
                 # ลบ rule จาก existing_rules
-                existing_rules.remove(rule_name)
+                # existing_rules.remove(rule_name)
             else:
                 print(f"Rule {rule_name} is active. Last hit time: {last_hit} (current time: {current_time}).")
         else:

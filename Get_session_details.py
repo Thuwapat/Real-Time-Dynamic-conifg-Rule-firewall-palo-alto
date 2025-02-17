@@ -17,12 +17,12 @@ def fetch_active_sessions():
     Fetch the active sessions from the Palo Alto firewall.
     Returns the session data in XML format or None in case of an error.
     """
-    url = f"https://{FIREWALL_IP}/api/"
+    url = f"https://{firewall_ip}/api/"
     payload = {
         'type': 'op',
         'cmd': '<show><session><all></all></session></show>',
       # 'cmd': '<show><session><all></all></session></show>',
-        'key': API_KEY
+        'key': api_key
     }
 
     try:

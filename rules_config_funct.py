@@ -69,6 +69,7 @@ def create_dos_profile(firewall_ip, api_key, existing_rules):
         if profile_name not in existing_rules:
                 print(f"Policy {profile_name} already exists")
                 existing_rules.add(profile_name)
+                
     else:
         print(f"Failed to create DoS Protection Policy: {response.status_code} - {response.text}")
 

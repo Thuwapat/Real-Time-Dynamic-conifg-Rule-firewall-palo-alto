@@ -50,10 +50,11 @@ def detection_loop():
             
             with open('scaler.pkl', 'rb') as scaler_file:
                 scaler = pickle.load(scaler_file)
-            
             feature_vector = pd.DataFrame([features])
+            print(feature_vector)
             predicted_attack = ml_model.predict(feature_vector)[0]
             print(f"Predicted Attack Type: {predicted_attack}")
+            print(existing_rules)
             
             if predicted_attack == 1:  # DoS attack
                 print(">>>>>>>> DoS Detected by ML !!!!! <<<<<<<<")

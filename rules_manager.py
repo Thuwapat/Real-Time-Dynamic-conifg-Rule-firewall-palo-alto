@@ -102,5 +102,6 @@ def check_and_remove_rule(rule_name, existing_rules):
                 print(f"Rule {rule_name} is active. Last hit time: {last_hit} (current time: {current_time}).")
         else:
             print(f"Could not find last-hit-timestamp for rule {rule_name}.")
+            print(current_time)
     else:
         print(f"Error retrieving data for rule {rule_name}: {result}")

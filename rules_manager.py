@@ -89,7 +89,7 @@ def check_and_remove_rule(rule_name, existing_rules):
                     print(f"Rule {rule_name} is inactive for over 60 seconds (last hit: {last_hit}). Deleting rule.")
                     delete_rule(rule_name)
                     #print("Deletion response:", deletion_response)
-                    existing_rules.remove(rule_name)  # ✅ Avoid KeyError
+                    existing_rules.discard(rule_name)  # ✅ Avoid KeyError
                 else:
                     print(f"Rule {rule_name} is active. Last hit time: {last_hit} (current time: {current_time}).")
             except ValueError:

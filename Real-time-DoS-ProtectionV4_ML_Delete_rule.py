@@ -61,6 +61,9 @@ def detection_loop():
                 for src_ip, count in session_count.items():
                     src_zone, dst_zone = zone_mapping[src_ip]
                     rule_name = f"Block_IP_{src_ip.replace('.', '_')}"
+                    if rule_name in existing_rules:
+                        print(f"Rule {rule_name} already exists..skiping creation")
+                        continue
                     if rule_name not in existing_rules:
                         create_dos_profile(firewall_ip, api_key, existing_rules)
                         create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
@@ -69,6 +72,9 @@ def detection_loop():
                 print(">>>>>>>>> DDoS Detected by ML !!!!!! <<<<<<<<")
                 for src_ip, (src_zone, dst_zone) in zone_mapping.items():
                     rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
+                    if rule_name in existing_rules:
+                        print(f"Rule {rule_name} already exists...skiping creation")
+                        continue
                     if rule_name not in existing_rules:
                         create_dos_profile(firewall_ip, api_key, existing_rules)
                         create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)

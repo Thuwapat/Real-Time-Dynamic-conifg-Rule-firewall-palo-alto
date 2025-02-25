@@ -61,7 +61,7 @@ def get_rule_last_hit_payload(rule_name):
 
 
 def delete_rule(rule_name):
-    url = f"{firewall_ip}/restapi/v10.2/Policies/DoSRules?location=vsys&vsys=vsys1&name={rule_name}"
+    url = f"https://{firewall_ip}/restapi/v10.2/Policies/DoSRules?location=vsys&vsys=vsys1&name={rule_name}"
     headers = {'X-PAN-KEY': api_key, 'Content-Type': 'application/json'}
     response = requests.delete(url, headers=headers, verify=False)
     if response.status_code == 200:

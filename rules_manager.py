@@ -3,6 +3,7 @@ import os
 import time
 import requests
 import xml.etree.ElementTree as ET
+from rules_config_funct import commit_changes
 import urllib.parse
 
 # ดึงค่า firewall_ip และ api_key จาก environment variable
@@ -74,6 +75,7 @@ def delete_rule(rule_name):
     url = f"https://{firewall_ip}/api/"
     try:
         response = requests.post(url, data=payload, verify=False, timeout=10)
+        commit_changes(firewall_ip, api_key)
     except Exception as e:
         return f"Error during deletion: {e}"
     

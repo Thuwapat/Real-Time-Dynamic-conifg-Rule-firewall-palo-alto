@@ -5,3 +5,10 @@ https://IP_ADDRESS/api/?type=op&key=APIKEY&cmd=<show><rule-hit-count><vsys><vsys
 ></list></rules></entry></rule-base></entry></vsys-name></vsys></rule-hit-count></show>
 
 https://192.168.15.5/api/?type=op&key=LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA==&cmd=%3Cshow%3E%3Crule-hit-count%3E%3Cvsys%3E%3Cvsys-name%3E%3Centry%20name=%27vsys1%27%3E%3Crule-base%3E%3Centry%20name=%27dos%27%3E%3Crules%3E%3Clist%3E%3Cmember%3Etest%3C/member%20%3E%3C/list%3E%3C/rules%3E%3C/entry%3E%3C/rule-base%3E%3C/entry%3E%3C/vsys-name%3E%3C/vsys%3E%3C/rule-hit-count%3E%3C/show%3E ## DoS hits
+
+
+https://192.168.15.5/api/?type=op&cmd=<debug><packet-diag><pcap-show></pcap-show></packet-diag></debug>&key=LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA==
+
+https://192.168.15.5/api/?type=op&cmd=<clear><session><all></all></session></clear>&key=LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA==
+
+curl -k "https://192.168.15.5/api/?type=op&cmd=<show><session><all></all></session></show>&key=LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA==" | grep -A 10 "<state>SYN-SENT</state>"

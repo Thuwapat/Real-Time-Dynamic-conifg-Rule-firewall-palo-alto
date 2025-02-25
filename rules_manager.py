@@ -46,7 +46,7 @@ def get_rule_last_hit_payload(rule_name):
     url = f"https://{firewall_ip}/api/"
     try:
         response = requests.post(url, data=payload, verify=False, timeout=10)
-        print("API Response:", response.text)  # ✅ Debugging output
+        #print("API Response:", response.text)  # ✅ Debugging output
     except Exception as e:
         return f"Error: {e}"
 
@@ -89,7 +89,7 @@ def check_and_remove_rule(rule_name, existing_rules):
     result = get_rule_last_hit_payload(rule_name)
 
     if isinstance(result, ET.Element):
-        ts_elem = result.find(".//entry/last-hit-timestamp")  # ✅ Adjusted XPath
+        ts_elem = result.find(".//rules/entry/last-hit-timestamp")  # ✅ Adjusted XPath
         if ts_elem is not None and ts_elem.text is not None:
             try:
                 last_hit = int(ts_elem.text.strip())  # ✅ Ensure clean int conversion

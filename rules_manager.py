@@ -11,24 +11,26 @@ api_key = os.environ.get("API_KEY_PALO_ALTO")
 
 def get_rule_last_hit_payload(rule_name):
     """
-    Fetch the hit information for a given rule from the Palo Alto firewall using a POST request with payload.
+    Fetch the last hit timestamp for a given rule from the Palo Alto firewall.
     Returns the XML ElementTree root of the API response or an error message.
     """
     xml_cmd = f"""
     <show>
       <rule-hit-count>
         <vsys>
-          <entry name='vsys1'>
-            <rule-base>
-              <entry name='dos'>
-                <rules>
-                  <list>
-                    <member>{rule_name}</member>
-                  </list>
-                </rules>
-              </entry>
-            </rule-base>
-          </entry>
+          <vsys-name>
+            <entry name='vsys1'>
+              <rule-base>
+                <entry name='dos'>
+                  <rules>
+                    <list>
+                      <member>{rule_name}</member>
+                    </list>
+                  </rules>
+                </entry>
+              </rule-base>
+            </entry>
+          </vsys-name>
         </vsys>
       </rule-hit-count>
     </show>
@@ -43,6 +45,7 @@ def get_rule_last_hit_payload(rule_name):
     url = f"https://{firewall_ip}/api/"
     try:
         response = requests.post(url, data=payload, verify=False, timeout=10)
+        print("API Response:", response.text)  # ✅ Debugging output
     except Exception as e:
         return f"Error: {e}"
 
@@ -54,6 +57,7 @@ def get_rule_last_hit_payload(rule_name):
             return f"XML Parse Error: {e}"
     else:
         return f"HTTP Error: {response.status_code}"
+
 
 def delete_rule(rule_name):
     """
@@ -81,27 +85,25 @@ def check_and_remove_rule(rule_name, existing_rules):
     ให้ลบ rule ทั้งใน firewall และจาก existing_rules
     """
     result = get_rule_last_hit_payload(rule_name)
+
     if isinstance(result, ET.Element):
-        ts_elem = result.find(".//last-hit-timestamp")
-        if ts_elem is not None:
+        ts_elem = result.find(".//entry/last-hit-timestamp")  # ✅ Adjusted XPath
+        if ts_elem is not None and ts_elem.text is not None:
             try:
-                last_hit = int(ts_elem.text)
+                last_hit = int(ts_elem.text.strip())  # ✅ Ensure clean int conversion
+                current_time = int(time.time())
+
+                if last_hit == 0 or (current_time - last_hit > 60):
+                    print(f"Rule {rule_name} is inactive for over 60 seconds (last hit: {last_hit}). Deleting rule.")
+                    deletion_response = delete_rule(rule_name)
+                    print("Deletion response:", deletion_response)
+                    existing_rules.discard(rule_name)  # ✅ Avoid KeyError
+                else:
+                    print(f"Rule {rule_name} is active. Last hit time: {last_hit} (current time: {current_time}).")
             except ValueError:
                 print(f"Invalid last-hit-timestamp for rule {rule_name}: {ts_elem.text}")
-                return
-            current_time = int(time.time())
-            if last_hit == 0 or (current_time - last_hit > 60):
-                print(f"Rule {rule_name} is inactive for over 60 seconds (last hit: {last_hit}). Deleting rule.")
-                deletion_response = delete_rule(rule_name)
-                print("Deletion response:", deletion_response)
-                try:
-                    existing_rules.remove(rule_name)
-                except KeyError:
-                    pass
-            else:
-                print(f"Rule {rule_name} is active. Last hit time: {last_hit} (current time: {current_time}).")
         else:
             print(f"Could not find last-hit-timestamp for rule {rule_name}.")
-            print(current_time)
     else:
         print(f"Error retrieving data for rule {rule_name}: {result}")
+

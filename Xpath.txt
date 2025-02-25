@@ -12,3 +12,31 @@ https://192.168.15.5/api/?type=op&cmd=<debug><packet-diag><pcap-show></pcap-show
 https://192.168.15.5/api/?type=op&cmd=<clear><session><all></all></session></clear>&key=LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA==
 
 curl -k "https://192.168.15.5/api/?type=op&cmd=<show><session><all></all></session></show>&key=LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA==" | grep -A 10 "<state>SYN-SENT</state>"
+
+https://192.168.15.5/api/?type=op&key=LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA==&cmd=%3Cshow%3E%3Crule-hit-count%3E%3Cvsys%3E%3Cvsys-name%3E%3Centry%20name=%27vsys1%27%3E%3Crule-base%3E%3Centry%20name=%27dos%27%3E%3Crules%3E%3Clist%3E%3Cmember%3EDDOSS%3C/member%20%3E%3C/list%3E%3C/rules%3E%3C/entry%3E%3C/rule-base%3E%3C/entry%3E%3C/vsys-name%3E%3C/vsys%3E%3C/rule-hit-count%3E%3C/show%3E
+
+<response status="success">
+<result>
+<rule-hit-count>
+<vsys>
+<entry name="vsys1">
+<rule-base>
+<entry name="dos">
+<rules>
+<entry name="DDOSS">
+<latest>yes</latest>
+<hit-count>0</hit-count>
+<last-hit-timestamp>0</last-hit-timestamp>
+<last-reset-timestamp>0</last-reset-timestamp>
+<first-hit-timestamp>0</first-hit-timestamp>
+<rule-creation-timestamp>1739285823</rule-creation-timestamp>
+<rule-modification-timestamp>1739285823</rule-modification-timestamp>
+</entry>
+</rules>
+</entry>
+</rule-base>
+</entry>
+</vsys>
+</rule-hit-count>
+</result>
+</response>

@@ -61,25 +61,14 @@ def get_rule_last_hit_payload(rule_name):
 
 
 def delete_rule(rule_name):
-    """
-    ส่งคำสั่งลบ rule ออกจาก firewall ผ่าน API
-    (ตัวอย่างนี้ใช้ XML command deletion ผ่าน XPath ตามที่ API ของ Palo Alto อนุญาต)
-    """
-    xpath = f"/config/devices/entry/vsys/entry/rule-base/entry[@name='dos']/rules/entry[@name='{rule_name}']"
-    payload = {
-        'type': 'config',
-        'action': 'delete',
-        'key': api_key,
-        'xpath': xpath
-    }
-    url = f"https://{firewall_ip}/api/"
-    try:
-        response = requests.post(url, data=payload, verify=False, timeout=10)
+    url = f"{firewall_ip}/restapi/v10.2/Policies/DoSRules?location=vsys&vsys=vsys1&name={rule_name}"
+    headers = {'X-PAN-KEY': api_key, 'Content-Type': 'application/json'}
+    response = requests.delete(url, headers=headers, verify=False)
+    if response.status_code == 200:
         commit_changes(firewall_ip, api_key)
-    except Exception as e:
-        return f"Error during deletion: {e}"
-    
-    return response.text
+        print(f"DoS Rule '{rule_name}' deleted successfully.")
+    else:
+        print(f"Failed to delete DoS Rule '{rule_name}': {response.status_code} - {response.text}")
 
 def check_and_remove_rule(rule_name, existing_rules):
     """
@@ -94,12 +83,13 @@ def check_and_remove_rule(rule_name, existing_rules):
             try:
                 last_hit = int(ts_elem.text.strip())  # ✅ Ensure clean int conversion
                 current_time = int(time.time())
+                time_difference = current_time - last_hit
 
-                if last_hit == 0 or (current_time - last_hit > 60):
+                if last_hit == 0 or time_difference > 10:
                     print(f"Rule {rule_name} is inactive for over 60 seconds (last hit: {last_hit}). Deleting rule.")
-                    deletion_response = delete_rule(rule_name)
-                    print("Deletion response:", deletion_response)
-                    existing_rules.discard(rule_name)  # ✅ Avoid KeyError
+                    delete_rule(rule_name)
+                    #print("Deletion response:", deletion_response)
+                    existing_rules.remove(rule_name)  # ✅ Avoid KeyError
                 else:
                     print(f"Rule {rule_name} is active. Last hit time: {last_hit} (current time: {current_time}).")
             except ValueError:

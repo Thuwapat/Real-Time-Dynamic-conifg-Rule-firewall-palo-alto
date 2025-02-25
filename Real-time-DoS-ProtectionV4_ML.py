@@ -18,6 +18,9 @@ UNIQUE_IP_THRESHOLD = 1020 # Unique source IP threshold
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
+# Initialize seen IPs storage
+seen_ips = set() 
+
 # Global set to track already reported rules
 existing_rules = set() 
 
@@ -35,7 +38,7 @@ while True:
     if session_data is not None:
         # Extract session statistics
         cps, kbps, num_active, num_icmp, num_tcp, num_udp, pps = parse_info_sessions(session_data)
-        session_count, unique_ip_count, zone_mapping = parse_act_sessions(actsession_data)
+        session_count, unique_ip_count, zone_mapping = parse_act_sessions(actsession_data, seen_ips)
         
         # Prepare feature vector for ML prediction
         features = {
@@ -83,7 +86,7 @@ while True:
                 create_dos_profile(firewall_ip, api_key, existing_rules)
                 create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)   
                 break # for stop dulicate Zone rules
-
+        
     else:
         print("No session data found.")
 

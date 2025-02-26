@@ -86,8 +86,8 @@ def get_all_logs(api_key, log_type="traffic", max_logs=1):
         print(f"HTTP error: {response.status_code} - {response.text}")
     return None
 
-if __name__ == "__main__":
-    # Retrieve all traffic logs
-    logs = get_all_logs(api_key)
-    if logs:
-        print(json.dumps(logs, indent=4))
+# if __name__ == "__main__":
+#     # Retrieve all traffic logs
+#     logs = get_all_logs(api_key)
+#     if logs:
+#         print(json.dumps(logs, indent=4))

@@ -27,16 +27,26 @@ def save_to_csv(data, folder="dataset", filename="traffic_logs.csv"):
     print(f"Data saved to {file_path}")
 
 def main():
-    print("เริ่มดึง Traffic Log จาก Firewall...")
-    logs = get_all_logs(api_key, log_type="traffic", max_logs=100)
-    
-    if logs:
-        print("Retrieved logs:")
-       # print(json.dumps(logs, indent=4))
-        # บันทึก logs ลง CSV
-        save_to_csv(logs, filename="traffic_logs.csv")
-    else:
-        print("ไม่สามารถดึง log ได้")
+    duration = 10 * 60  # 10 นาที = 600 วินาที
+    start_time = time.time()
+    print("เริ่มดึง Traffic Log จาก Firewall เป็นเวลา 10 นาที...")
+
+    while True:
+        elapsed_time = time.time() - start_time
+        if elapsed_time >= duration:
+            print("ครบ 10 นาทีแล้ว หยุดดึง log และบันทึกข้อมูล CSV")
+            break
+
+        logs = get_all_logs(api_key, log_type="traffic", max_logs=100)
+        if logs:
+            print("Retrieved logs:")
+            # print(json.dumps(logs, indent=4))
+            save_to_csv(logs, filename="traffic_logs.csv")
+        else:
+            print("ไม่สามารถดึง log ได้")
+        
+        # ปรับ delay ตามความเหมาะสม หากต้องการให้ดึงข้อมูลต่อเนื่อง สามารถลดเวลานี้ได้
+        time.sleep(0.01)
 
 if __name__ == "__main__":
     main()

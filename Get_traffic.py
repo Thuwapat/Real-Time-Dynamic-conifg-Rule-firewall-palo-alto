@@ -1,5 +1,6 @@
 import requests
 import xml.etree.ElementTree as ET
+from collections import defaultdict
 import json
 import time
 import os
@@ -86,8 +87,33 @@ def get_all_logs(api_key, log_type="traffic", max_logs=1):
         print(f"HTTP error: {response.status_code} - {response.text}")
     return None
 
+def analyze_unique_ips_per_second(logs):
+    """
+    วิเคราะห์ Unique IP ใหม่ที่พบในแต่ละวินาทีจาก traffic logs
+    """
+    unique_ips = set()  # เก็บ IP ที่เคยพบแล้ว
+    new_unique_ips_per_sec = defaultdict(set)  # เก็บ IP ใหม่ที่ไม่เคยเห็นมาก่อน แยกตามเวลา
+
+    for log in logs:
+        timestamp = log.get('receive_time')  # ต้องตรวจสอบว่า 'receive_time' คือฟิลด์ที่ถูกต้อง
+        src_ip = log.get('src')  # ดึงค่า IP ต้นทาง
+        if timestamp and src_ip:
+            timestamp_sec = timestamp.split('.')[0]  # ตัดให้เหลือระดับวินาที
+            if src_ip not in unique_ips:
+                new_unique_ips_per_sec[timestamp_sec].add(src_ip)
+                unique_ips.add(src_ip)
+
+    # แสดงผลลัพธ์
+    result = {time: len(ips) for time, ips in new_unique_ips_per_sec.items()}
+    return result
 
 # Retrieve all traffic logs
 logs = get_all_logs(api_key)
 if logs:
-    print(json.dumps(logs, indent=4))
+    unique_ip_analysis = analyze_unique_ips_per_second(logs)
+    print("New Unique IP/S :")
+    print(json.dumps(unique_ip_analysis, indent=4))
+    for log in logs:
+        print(f"Source IP: {log.get('src')}, Destination IP: {log.get('dst')}, Bytes Sent: {log.get('bytes')}")
+
+

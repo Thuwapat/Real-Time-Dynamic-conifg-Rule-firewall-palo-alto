@@ -3,6 +3,7 @@ import os
 import time
 import pickle
 import threading
+import numpy as np
 import joblib
 import pandas as pd
 import requests
@@ -28,7 +29,11 @@ with open('RandomForest_Traffic_Model.pkl', 'rb') as model_file:
 
 print(f"✅ Loaded Model: {type(ml_model)}")
 
-label_encoders = {}
+try:
+    with open("label_encoders.pkl", "rb") as le_file:
+        label_encoders = joblib.load(le_file)
+except FileNotFoundError:
+    label_encoders = {}
 
 print("-------- Start Real-Time DoS/DDoS Protection with ML (Updated) --------")
 
@@ -58,7 +63,6 @@ def preprocess_traffic_log(log):
         "Average packet size": int(log.get("bytes", 0)) / (int(log.get("packets", 1)) + 1e-5)
     }
 
-
 def detection_loop():
     while True:
         logs = get_all_logs(api_key, log_type="traffic", max_logs=5)
@@ -68,12 +72,17 @@ def detection_loop():
                 # แปลงข้อมูล Log เป็น Feature Vector
                 features = preprocess_traffic_log(log)
 
-                # แปลง String Features เป็นตัวเลขโดยใช้ Label Encoding
+                # แปลง String Features เป็นตัวเลขโดยใช้ Label Encoding ที่ถูกต้อง
                 string_features = ["Application", "Session End Reason", "Characteristic of app"]
                 for col in string_features:
                     if col not in label_encoders:
                         label_encoders[col] = LabelEncoder()
                         label_encoders[col].fit([features[col]])  # Fit เฉพาะค่าเดียวก่อน
+
+                    # ✅ แก้ไขปัญหา "unseen label" โดยใช้ `classes_`
+                    if features[col] not in label_encoders[col].classes_:
+                        label_encoders[col].classes_ = np.append(label_encoders[col].classes_, features[col])
+
                     features[col] = label_encoders[col].transform([features[col]])[0]
 
                 # แปลงเป็น DataFrame ก่อนให้โมเดลทำนาย
@@ -84,7 +93,7 @@ def detection_loop():
                 print(f"Predicted Attack Type: {predicted_attack}")
 
                 # ถ้าเป็น DoS หรือ DDoS ให้สร้าง Rule เพื่อ Block
-                if predicted_attack == 1 or predicted_attack == 3:  # DoS attack
+                if predicted_attack == 1:  # DoS attack
                     print(">>>>>>>> DoS Detected by ML !!!!! <<<<<<<<")
                     src_ip = log.get("src")
                     dst_ip = log.get("dst")

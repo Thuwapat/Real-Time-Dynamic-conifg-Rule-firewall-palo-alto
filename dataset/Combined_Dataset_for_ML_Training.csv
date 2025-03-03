@@ -1,0 +1,6 @@
+Application,Repeat Count,IP Protocol,Bytes,Bytes Received,Packets,Elapsed Time (sec),Packets Received,Session End Reason,Risk of app,Characteristic of app,Packets per second,Bytes per second,Average packet size,Label
+dns-base,1,udp,60,0,1,0,0,aged-out,3,"used-by-malware,has-known-vulnerability,pervasive-use",99999.99999999999,5999999.999999999,59.99940000599994,DDoS
+dns-base,1,udp,60,0,1,0,0,aged-out,3,"used-by-malware,has-known-vulnerability,pervasive-use",99999.99999999999,5999999.999999999,59.99940000599994,DDoS
+dns-base,1,udp,60,0,1,0,0,aged-out,3,"used-by-malware,has-known-vulnerability,pervasive-use",99999.99999999999,5999999.999999999,59.99940000599994,DDoS
+dns-base,1,udp,60,0,1,0,0,aged-out,3,"used-by-malware,has-known-vulnerability,pervasive-use",99999.99999999999,5999999.999999999,59.99940000599994,DDoS
+dns-base,1,udp,60,0,1,0,0,aged-out,3,"used-by-malware,has-known-vulnerability,pervasive-use",99999.99999999999,5999999.999999999,59.99940000599994,DDoS

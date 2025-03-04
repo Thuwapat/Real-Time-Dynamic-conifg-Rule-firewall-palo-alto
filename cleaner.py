@@ -1,43 +1,20 @@
+# Re-import necessary libraries and load the dataset again
 import pandas as pd
-import numpy as np
 
-# 📌 **1. โหลด Dataset**
-file_path = "./dataset/ML_Training_Dataset.csv"
-df = pd.read_csv(file_path)
+# Load the dataset
+new_file_path = './dataset/Balanced_datasetV3.csv'
+new_data = pd.read_csv(new_file_path)
 
-# 📌 **2. ลบฟีเจอร์ที่ไม่มีประโยชน์**
-columns_to_drop = ["Application","Session End Reason"]
-df = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
+# Calculate the features
+new_data['tcp_to_udp'] = new_data['num_tcp'] / new_data['num_udp'].replace(0, 1)  # Avoid division by zero
+new_data['tcp_to_icmp'] = new_data['num_tcp'] / new_data['num_icmp'].replace(0, 1)
+new_data['pps_to_cps'] = new_data['pps'] / new_data['cps'].replace(0, 1)
+new_data['kbps_to_pps'] = new_data['kbps'] / new_data['pps'].replace(0, 1)
+new_data['kbps_to_cps'] = new_data['kbps'] / new_data['cps'].replace(0, 1)
+new_data['pps_to_cps'] = new_data['pps'] / new_data['cps'].replace(0, 1)
 
-# 📌 **3. ตรวจหาคอลัมน์ที่เป็นข้อความ และใช้ Label Encoding**
-#categorical_columns = df.select_dtypes(include=['object']).columns.tolist()
-#label_encoders = {}
-#for col in categorical_columns:
-#    le = LabelEncoder()
-#    df[col] = le.fit_transform(df[col])
-#    label_encoders[col] = le  # เก็บ Label Encoder ไว้ใช้ภายหลัง
+# Save the updated dataset to a new file
+updated_file_path = './dataset/Updated_Balanced_dataset.csv'
+new_data.to_csv(updated_file_path, index=False)
 
-# 📌 **4. สร้างฟีเจอร์ใหม่ (Feature Engineering)**
-
-# หลีกเลี่ยงการหารด้วยศูนย์
-df["Packets per second"] = df["Packets"] / df["Elapsed Time (sec)"].replace(0, np.nan)
-df["Bytes per second"] = df["Bytes"] / df["Elapsed Time (sec)"].replace(0, np.nan)
-df["Bytes per packet"] = df["Bytes"] / df["Packets"].replace(0, np.nan)
-
-df["Packets Sent Ratio"] = df["Packets Sent"] / df["Packets"].replace(0, np.nan)
-df["Packets Received Ratio"] = df["Packets Received"] / df["Packets"].replace(0, np.nan)
-df["Bytes Sent Ratio"] = df["Bytes Sent"] / df["Bytes"].replace(0, np.nan)
-df["Bytes Received Ratio"] = df["Bytes Received"] / df["Bytes"].replace(0, np.nan)
-
-# ใช้ Log Transformation กับค่าที่มีการกระจายแบบ Skewed
-#for col in ["Bytes", "Packets", "Bytes Sent", "Bytes Received"]:
-#    df[f"Log_{col}"] = np.log1p(df[col])
-
-# 📌 **5. จัดการ Missing Values**
-df.fillna(0, inplace=True)  # แทนที่ค่า NaN ด้วย 0
-
-# 📌 **6. บันทึก Dataset ใหม่ที่ผ่าน Feature Engineering**
-output_file_path = "./dataset/ML_Training_Dataset_Feature_Engineered.csv"
-df.to_csv(output_file_path, index=False)
-
-print(f"✅ Dataset ที่ผ่าน Feature Engineering ถูกบันทึกเป็นไฟล์: {output_file_path}")
+updated_file_path  # Provide the path for download

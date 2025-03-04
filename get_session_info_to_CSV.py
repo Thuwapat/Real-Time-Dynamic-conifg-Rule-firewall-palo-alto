@@ -10,7 +10,7 @@ api_key = os.environ.get("API_KEY_PALO_ALTO")
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 # Function to save session data to CSV
-def save_to_csv(data, folder = "dataset", filename="session_info_Dos_TCP.csv"):
+def save_to_csv(data, folder = "dataset", filename="session_info_Slowloris_TCP3.csv"):
     if not os.path.exists(folder):
         os.makedirs(folder)
 

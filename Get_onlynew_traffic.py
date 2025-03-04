@@ -101,6 +101,29 @@ def get_new_traffic_logs(api_key, log_type="traffic", max_logs=10):
         print(f"HTTP error: {response.status_code} - {response.text}")
     return None
 
+def preprocess_traffic_log(log):
+    """ แปลงข้อมูล Traffic Log ให้เป็น Feature Vector ที่โมเดลต้องการ """
+
+    # แปลงค่าโปรโตคอลจากชื่อ (string) เป็นตัวเลข
+    protocol_mapping = {"tcp": 6, "udp": 17, "icmp": 1}
+    ip_protocol = protocol_mapping.get(log.get("proto", "").lower(), 0)  # ค่า default เป็น 0 ถ้าไม่พบ
+
+    return {
+        "Repeat Count": int(log.get("repeatcnt", 1)),
+        "IP Protocol": ip_protocol,
+        "Bytes": int(log.get("bytes", 0)),
+        "Bytes Sent": int(log.get("bytes_sent", 0)),
+        "Bytes Received": int(log.get("bytes_received", 0)),
+        "Packets": int(log.get("packets", 0)),
+        "Elapsed Time (sec)": float(log.get("elapsed", 1.0)),
+        "Packets Sent": int(log.get("pkts_sent", 0)),
+        "Packets Received": int(log.get("pkts_received", 0)),
+        "Risk of app": int(log.get("risk_of_app", 1)),
+        "Packets per second": int(log.get("packets", 0)) / (float(log.get("elapsed", 1.0)) + 1e-5),
+        "Bytes per second": int(log.get("bytes", 0)) / (float(log.get("elapsed", 1.0)) + 1e-5),
+        "Average packet size": int(log.get("bytes", 0)) / (int(log.get("packets", 1)) + 1e-5)
+    }
+
 # เรียกใช้ฟังก์ชันเพื่อดึงเฉพาะ Traffic ใหม่
 if __name__ == "__main__":
     new_traffic_logs = get_new_traffic_logs(api_key)

@@ -57,7 +57,6 @@ def preprocess_traffic_log(log):
         "Packets Received": int(log.get("pkts_received", 0)),
         "Session End Reason": log.get("session_end_reason", "unknown"),  # ต้องแปลงเป็นตัวเลข
         "Risk of app": int(log.get("risk_of_app", 1)),
-        "Characteristic of app": log.get("characteristic_of_app", "unknown"),  # ต้องแปลงเป็นตัวเลข
         "Packets per second": int(log.get("packets", 0)) / (float(log.get("elapsed", 1.0)) + 1e-5),
         "Bytes per second": int(log.get("bytes", 0)) / (float(log.get("elapsed", 1.0)) + 1e-5),
         "Average packet size": int(log.get("bytes", 0)) / (int(log.get("packets", 1)) + 1e-5)
@@ -73,13 +72,13 @@ def detection_loop():
                 features = preprocess_traffic_log(log)
 
                 # แปลง String Features เป็นตัวเลขโดยใช้ Label Encoding ที่ถูกต้อง
-                string_features = ["Application", "Session End Reason", "Characteristic of app"]
+                string_features = ["Application", "Session End Reason"]
                 for col in string_features:
                     if col not in label_encoders:
                         label_encoders[col] = LabelEncoder()
                         label_encoders[col].fit([features[col]])  # Fit เฉพาะค่าเดียวก่อน
 
-                    # ✅ แก้ไขปัญหา "unseen label" โดยใช้ `classes_`
+                    # แก้ไขปัญหา "unseen label" โดยใช้ `classes_`
                     if features[col] not in label_encoders[col].classes_:
                         label_encoders[col].classes_ = np.append(label_encoders[col].classes_, features[col])
 

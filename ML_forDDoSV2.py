@@ -14,10 +14,10 @@ df = pd.read_csv(dataset_path, low_memory=False, dtype=str)  # โหลดข�
 selected_features = [
     "Application", "Repeat Count", "IP Protocol", "Bytes", "Bytes Sent", "Bytes Received",
     "Packets", "Elapsed Time (sec)", "Packets Sent", "Packets Received", "Session End Reason",
-    "Risk of app", "Characteristic of app", "Packets per second", "Bytes per second", "Average packet size"
+    "Risk of app", "Packets per second", "Bytes per second", "Average packet size"
 ]
 
-string_features = ["Application", "Session End Reason", "Characteristic of app"]
+string_features = ["Application", "Session End Reason"]
 numeric_features = [col for col in selected_features if col not in string_features]
 
 df_encoded = df[selected_features].copy()

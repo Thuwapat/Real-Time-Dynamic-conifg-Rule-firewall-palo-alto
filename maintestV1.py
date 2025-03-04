@@ -97,7 +97,8 @@ def detection_loop():
                     print(">>>>>>>> DoS Detected by ML !!!!! <<<<<<<<")
                     src_ip = log.get("src")
                     dst_ip = log.get("dst")
-                    src_zone, dst_zone = "untrust", "trust"  # แก้ให้เหมาะกับ network ของคุณ
+                    src_zone = log.get("from")
+                    dst_zone = log.get("to")  # แก้ให้เหมาะกับ network ของคุณ
                     rule_name = f"Block_IP_{src_ip.replace('.', '_')}"
 
                     if rule_name not in existing_rules:
@@ -107,7 +108,8 @@ def detection_loop():
 
                 elif predicted_attack == 2:  # DDoS attack
                     print(">>>>>>>>> DDoS Detected by ML !!!!!! <<<<<<<<")
-                    src_zone, dst_zone = "untrust", "trust"  # แก้ให้เหมาะกับ network ของคุณ
+                    src_zone = log.get("from")
+                    dst_ip = log.get("dst")
                     rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
 
                     if rule_name not in existing_rules:

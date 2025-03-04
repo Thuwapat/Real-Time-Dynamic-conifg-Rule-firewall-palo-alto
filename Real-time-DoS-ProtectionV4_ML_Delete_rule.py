@@ -23,7 +23,7 @@ requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.
 existing_rules = set()
 
 # Load the ML model
-with open('dos_detection_model.pkl', 'rb') as model_file:
+with open('dos_detection_modelV3.pkl', 'rb') as model_file:
     ml_model = pickle.load(model_file)
 
 print("-------- Start Real-Time DoS/DDoS Protection with ML --------")
@@ -48,8 +48,6 @@ def detection_loop():
                 'pps': pps
             }
             
-            with open('scaler.pkl', 'rb') as scaler_file:
-                scaler = pickle.load(scaler_file)
             feature_vector = pd.DataFrame([features])
             print(feature_vector)
             predicted_attack = ml_model.predict(feature_vector)[0]
@@ -65,8 +63,8 @@ def detection_loop():
                         print(f"Rule {rule_name} already exists..skiping creation")
                         continue
                     if rule_name not in existing_rules:
-                        create_dos_profile(firewall_ip, api_key, existing_rules)
-                        create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
+                        #create_dos_profile(firewall_ip, api_key, existing_rules)
+                        #create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
                         existing_rules.add(rule_name)
             elif predicted_attack == 2 and unique_ip_count >= UNIQUE_IP_THRESHOLD:  # DDoS attack
                 print(">>>>>>>>> DDoS Detected by ML !!!!!! <<<<<<<<")
@@ -76,8 +74,8 @@ def detection_loop():
                         print(f"Rule {rule_name} already exists...skiping creation")
                         continue
                     if rule_name not in existing_rules:
-                        create_dos_profile(firewall_ip, api_key, existing_rules)
-                        create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)
+                        #create_dos_profile(firewall_ip, api_key, existing_rules)
+                        #create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)
                         existing_rules.add(rule_name)
                     break  # หยุดสร้าง rule ซ้ำสำหรับ zone เดียวกัน
         else:

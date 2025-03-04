@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
 
-dataset_path = "./dataset/Combined_Traffic_Dataset_With_Normal.csv"  # เปลี่ยนเป็น path ของไฟล์ที่ใช้งาน
+dataset_path = "./dataset/Selected_Features_Dataset.csv"  # เปลี่ยนเป็น path ของไฟล์ที่ใช้งาน
 df = pd.read_csv(dataset_path, low_memory=False, dtype=str)  # โหลดข้อมูลเป็น string ทั้งหมด
 
 selected_features = [
@@ -79,5 +79,5 @@ plt.ylabel("True Label")
 plt.title("Confusion Matrix (Best Tuned Model)")
 plt.show()
 
-joblib.dump(best_model, "RandomForest_Traffic_ModelV1.pkl")
+joblib.dump(best_model, "RandomForest_Traffic_ModelV2.pkl")
 print("Best Model saved as Best_RandomForest_Traffic_Model.pkl")

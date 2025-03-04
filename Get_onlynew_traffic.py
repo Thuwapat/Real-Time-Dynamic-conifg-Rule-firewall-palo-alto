@@ -10,7 +10,11 @@ api_key = os.environ.get("API_KEY_PALO_ALTO")
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
+# เก็บค่าของ Session ID ล่าสุด
+last_session_id = None
+
 def get_job_result(api_key, job_id):
+    """ดึงผลลัพธ์ของ Log จาก Palo Alto"""
     url = f"https://{firewall_ip}/api/"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
@@ -51,23 +55,21 @@ def get_job_result(api_key, job_id):
             break
     return None
 
-def get_all_logs(api_key, log_type="traffic", max_logs=1):
+def get_new_traffic_logs(api_key, log_type="traffic", max_logs=10):
+    """ดึงเฉพาะ Traffic ที่มี Session ID ใหม่"""
+    global last_session_id
+
     url = f"https://{firewall_ip}/api/"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-
-    # Empty query to fetch all logs
-    query = ""
 
     # Payload for retrieving logs
     payload = {
         'type': 'log',
         'log-type': log_type,
         'key': api_key,
-        'query': query,
         'nlogs': max_logs
     }
 
-    # Send the API request
     response = requests.post(url, headers=headers, data=payload, verify=False)
 
     if response.status_code == 200:
@@ -75,7 +77,20 @@ def get_all_logs(api_key, log_type="traffic", max_logs=1):
             response_xml = ET.fromstring(response.text)
             if response_xml.attrib['status'] == 'success':
                 job_id = response_xml.find('.//job').text
-                return get_job_result(api_key, job_id)
+                logs = get_job_result(api_key, job_id)
+
+                # กรองเฉพาะ Logs ที่มี Session ID ใหม่
+                new_logs = []
+                for log in logs:
+                    session_id = log.get('sessionid', None)
+                    if session_id and session_id != last_session_id:
+                        new_logs.append(log)
+
+                # อัปเดตค่า last_session_id
+                if new_logs:
+                    last_session_id = new_logs[-1]['sessionid']
+
+                return new_logs
             else:
                 print(f"Failed to retrieve logs: {response_xml.find('.//msg').text}")
         except ET.ParseError as e:
@@ -86,8 +101,8 @@ def get_all_logs(api_key, log_type="traffic", max_logs=1):
         print(f"HTTP error: {response.status_code} - {response.text}")
     return None
 
-# if __name__ == "__main__":
-#     # Retrieve all traffic logs
-#     logs = get_all_logs(api_key)
-#     if logs:
-#         print(json.dumps(logs, indent=4))
+# เรียกใช้ฟังก์ชันเพื่อดึงเฉพาะ Traffic ใหม่
+if __name__ == "__main__":
+    new_traffic_logs = get_new_traffic_logs(api_key)
+    if new_traffic_logs:
+        print(json.dumps(new_traffic_logs, indent=4))

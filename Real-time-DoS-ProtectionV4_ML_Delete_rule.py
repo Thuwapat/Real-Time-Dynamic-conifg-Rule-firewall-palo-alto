@@ -93,8 +93,8 @@ def rule_check_loop():
         time.sleep(5)
 
 # ใช้ threading เพื่อรัน detection_loop และ rule_check_loop พร้อมกัน
-detection_thread = threading.Thread(target=detection_loop, name="DetectionThread")
-rule_check_thread = threading.Thread(target=rule_check_loop, name="RuleCheckThread")
+detection_thread = threading.Thread(target=detection_loop, name="DetectionThread", daemon=True)
+rule_check_thread = threading.Thread(target=rule_check_loop, name="RuleCheckThread", daemon=True)
 
 detection_thread.start()
 rule_check_thread.start()

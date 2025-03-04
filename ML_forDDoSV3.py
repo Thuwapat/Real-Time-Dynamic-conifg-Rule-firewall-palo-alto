@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 from sklearn.preprocessing import LabelEncoder
 
 # 📌 โหลดข้อมูลที่ถูกเลือก
-file_path = "./dataset/Selected_Features_for_ML.csv"  # แก้เป็นชื่อไฟล์ของคุณ
+file_path = "./dataset/ML_Training_Dataset.csv"  # แก้เป็นชื่อไฟล์ของคุณ
 df = pd.read_csv(file_path)
 
 # 📌 จัดการค่าที่ขาดหายไป (ถ้ามี)

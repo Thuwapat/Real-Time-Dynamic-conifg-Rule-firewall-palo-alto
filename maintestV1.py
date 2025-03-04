@@ -7,7 +7,7 @@ import numpy as np
 import joblib
 import pandas as pd
 import requests
-from Get_traffic import get_all_logs  # ดึงข้อมูลจาก Get_traffic.py
+from Get_onlynew_traffic import get_new_traffic_logs # ดึงข้อมูลจาก Get_traffic.py
 from rules_config_funct import *
 from rules_manager import *
 from sklearn.preprocessing import LabelEncoder
@@ -65,7 +65,7 @@ def preprocess_traffic_log(log):
 
 def detection_loop():
     while True:
-        logs = get_all_logs(api_key, log_type="traffic", max_logs=5)
+        logs = get_new_traffic_logs(api_key, log_type="traffic", max_logs=5)
 
         if logs:
             for log in logs:

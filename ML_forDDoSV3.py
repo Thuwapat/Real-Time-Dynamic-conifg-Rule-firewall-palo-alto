@@ -1,66 +1,63 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
-from sklearn.preprocessing import LabelEncoder
-import joblib
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-# 📌 **1. โหลด Dataset**
-file_path = "./dataset/ML_Training_Dataset.csv"  # ระบุพาธของไฟล์ที่ดาวน์โหลด
+# 📂 โหลด Dataset
+file_path = "./dataset/Balanced_Traffic_Dataset.csv"  # เปลี่ยนเป็นที่อยู่ของไฟล์คุณ
 df = pd.read_csv(file_path)
 
-# 📌 **2. แปลง Label เป็นค่าตัวเลข**
-label_mapping = {"Normal": 0, "DoS": 1, "DDoS": 2, "Slowloris": 3}
-df["Label"] = df["Label"].map(label_mapping)
+# 🎯 ฟีเจอร์ที่เลือกใช้
+selected_features = [
+    "Repeat Count", "IP Protocol", "Bytes", "Bytes Sent", "Bytes Received",
+    "Packets", "Elapsed Time (sec)", "Packets Sent", "Packets Received",
+    "Risk of app", "Packets per second", "Bytes per second", "Average packet size", "Label"
+]
 
-# 📌 **3. ตรวจหาคอลัมน์ที่เป็นข้อความ และใช้ Label Encoding**
-categorical_columns = df.select_dtypes(include=['object']).columns.tolist()
+df_selected = df[selected_features].copy()
 
-# ใช้ Label Encoding กับทุกคอลัมน์ที่เป็นข้อความ
-label_encoders = {}
-for col in categorical_columns:
-    le = LabelEncoder()
-    df[col] = le.fit_transform(df[col])
-    label_encoders[col] = le  # เก็บตัว Encoder ไว้สำหรับใช้งานต่อไป
+# 🔄 แปลง Label เป็นตัวเลข
+label_mapping = {"DoS": 1, "DDoS": 2, "Slowloris": 3}
+df_selected["Label"] = df_selected["Label"].map(label_mapping)
 
-# 📌 **4. แยก Features และ Labels**
-X = df.drop(columns=["Label"])  # Features
-y = df["Label"]  # Target
+# 🔄 แปลง 'IP Protocol' เป็นตัวเลข
+df_selected["IP Protocol"] = df_selected["IP Protocol"].astype('category').cat.codes
 
-# 📌 **5. แบ่ง Train/Test 80:20**
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# 🎯 แยก Features และ Label
+X = df_selected.drop(columns=["Label"])
+y = df_selected["Label"]
 
-# 📌 **6. Train Random Forest**
+# ✂️ แบ่งข้อมูลเป็น Train (80%) และ Test (20%)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+# 🌲 Train Random Forest Model
 rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
 rf_model.fit(X_train, y_train)
 
-# 📌 **7. ทำนายผล**
+# 🔮 ทำนายผล
 y_pred = rf_model.predict(X_test)
 
-acc = accuracy_score(y_pred, y_test)
-print(acc)
-# 📌 **8. แสดงผล Confusion Matrix**
-plt.figure(figsize=(6,5))
-cm = confusion_matrix(y_test, y_pred)
-sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=label_mapping.keys(), yticklabels=label_mapping.keys())
-plt.xlabel("Predicted")
-plt.ylabel("Actual")
-plt.title("Confusion Matrix")
+# 📊 ประเมินผลลัพธ์
+accuracy = accuracy_score(y_test, y_pred)
+classification_rep = classification_report(y_test, y_pred, target_names=["DoS", "DDoS", "Slowloris"])
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+print(f"🎯 Accuracy: {accuracy:.4f}")
+print("\n📊 Classification Report:\n", classification_rep)
+
+# 🔥 แสดงผล Confusion Matrix
+plt.figure(figsize=(6, 5))
+sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=["DoS", "DDoS", "Slowloris"], yticklabels=["DoS", "DDoS", "Slowloris"])
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.title("Confusion Matrix for Random Forest Model")
 plt.show()
 
-# 📌 **9. แสดงผล Accuracy, Precision, Recall, F1-score**
-print("📊 **Classification Report:**")
-print(classification_report(y_test, y_pred))
-
-# 📌 **10. บันทึกโมเดล และ Label Encoders**
-model_filename = "RandomForest_Traffic_ModelV3.pkl"
-encoder_filename = "LabelEncoders.pkl"
-
+# 💾 บันทึกโมเดล
+model_filename = "Random_forest_modelV3.pkl"
 joblib.dump(rf_model, model_filename)
-joblib.dump(label_encoders, encoder_filename)
-
-print(f"✅ โมเดลถูกบันทึกเป็นไฟล์: {model_filename}")
-print(f"✅ Label Encoders ถูกบันทึกเป็นไฟล์: {encoder_filename}")
+print(f"✅ โมเดลถูกบันทึกแล้วที่: {model_filename}")

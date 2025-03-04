@@ -23,7 +23,7 @@ features = ['cps', 'kbps', 'num_active', 'num_icmp', 'num_tcp', 'num_udp', 'pps'
 #                           dos_data[features + ['state']],
 #                           ddos_data[features + ['state']]])
 
-combined_data = pd.read_csv("./dataset/train_dataset_final.csv")
+combined_data = pd.read_csv("./dataset/Balanced_datasetV3.csv")
 combined_data = combined_data.fillna(0).astype(int)
 
 #combined_data.to_csv('./dataset/combined_data.csv', index=False)
@@ -53,7 +53,7 @@ rf_classifier.fit(x_train, y_train)
 #    pickle.dump(scaler, scaler_file)
 
 # Save the trained model
-with open('dos_detection_model.pkl', 'wb') as model_file:
+with open('dos_detection_modelV3.pkl', 'wb') as model_file:
     pickle.dump(rf_classifier, model_file)
 
 

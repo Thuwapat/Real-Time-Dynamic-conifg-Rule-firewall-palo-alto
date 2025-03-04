@@ -9,7 +9,7 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 from sklearn.preprocessing import LabelEncoder
 
 # 📌 **โหลด Dataset**
-dataset_path = "./dataset/Combined_Traffic_Dataset_With_Synthetic_Normal.csv"  # เปลี่ยนเป็น path ของไฟล์ที่ใช้งาน
+dataset_path = "./dataset/Combined_Traffic_Dataset_With_Normal.csv"  # เปลี่ยนเป็น path ของไฟล์ที่ใช้งาน
 df = pd.read_csv(dataset_path, low_memory=False, dtype=str)  # โหลดข้อมูลเป็น string ทั้งหมด
 
 # 📌 **เลือก Features ที่ใช้**
@@ -97,5 +97,5 @@ plt.title("Confusion Matrix (Best Tuned Model)")
 plt.show()
 
 # 📌 **บันทึกโมเดลที่ดีที่สุด**
-joblib.dump(best_model, "Best_RandomForest_Traffic_Model.pkl")
+joblib.dump(best_model, "RandomForest_Traffic_ModelV1.pkl")
 print("✅ Best Model saved as Best_RandomForest_Traffic_Model.pkl")

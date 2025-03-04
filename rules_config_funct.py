@@ -117,7 +117,7 @@ def create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zon
 
     response = requests.post(url, headers=headers, json=payload, verify=False)
     if response.status_code == 200:
-        commit_changes(firewall_ip, api_key)
+        commit_changes(firewall_ip, api_key, force=True)
         print(f"DoS Protection Policy created successfully: {rule_name}")
         #message = (f"🚨 DoS Detected 🚨\n"
         #            f"Source IP: {src_ip} \n"

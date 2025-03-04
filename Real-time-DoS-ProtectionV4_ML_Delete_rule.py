@@ -7,7 +7,6 @@ import pandas as pd
 import requests
 from session_funct import *
 from rules_config_funct import *
-# Import ฟังก์ชันจาก rules_manager.py
 from rules_manager import *
 
 # Palo Alto firewall credentials and IP
@@ -71,13 +70,12 @@ def detection_loop():
                 for src_ip, (src_zone, dst_zone) in zone_mapping.items():
                     rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
                     if rule_name in existing_rules:
-                        print(f"Rule {rule_name} already exists...skiping creation")
                         continue
                     if rule_name not in existing_rules:
                         #create_dos_profile(firewall_ip, api_key, existing_rules)
                         #create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)
                         existing_rules.add(rule_name)
-                    break  # หยุดสร้าง rule ซ้ำสำหรับ zone เดียวกัน
+                    break  
         else:
             print("No session data found.")
         
@@ -90,7 +88,6 @@ def rule_check_loop():
             check_and_remove_rule(rule, existing_rules)
         time.sleep(5)
 
-# ใช้ threading เพื่อรัน detection_loop และ rule_check_loop พร้อมกัน
 detection_thread = threading.Thread(target=detection_loop, name="DetectionThread", daemon=True)
 rule_check_thread = threading.Thread(target=rule_check_loop, name="RuleCheckThread", daemon=True)
 

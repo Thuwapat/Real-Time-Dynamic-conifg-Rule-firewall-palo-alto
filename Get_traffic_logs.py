@@ -3,14 +3,13 @@ import requests
 import xml.etree.ElementTree as ET
 import time
 import os
-from datetime import datetime, timedelta
-
+from datetime import datetime
 firewall_ip = os.environ.get("FIREWALL_IP")
 api_key = os.environ.get("API_KEY_PALO_ALTO")
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-last_fetch_time = None
+last_session_id = None
 
 def get_job_result(api_key, job_id):
     url = f"https://{firewall_ip}/api/"
@@ -54,74 +53,70 @@ def get_job_result(api_key, job_id):
     return None
 
 def get_new_traffic_logs(api_key, log_type="traffic", max_logs=100):
-    global last_fetch_time
+    """Fetch exactly 'max_logs' new traffic logs, or fewer if not available."""
+    global last_session_id
 
     url = f"https://{firewall_ip}/api/"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
-    current_time = datetime.now()
-    if last_fetch_time is None:
-        last_fetch_time = current_time - timedelta(seconds=1)
-    query_time = last_fetch_time.strftime("%Y/%m/%d %H:%M:%S")
+    new_logs = []
+    fetch_start_time = time.time()
+    print(f"Fetching up to {max_logs} new logs starting at {datetime.now()} with last_session_id={last_session_id}")
 
-    payload = {
-        'type': 'log',
-        'log-type': log_type,
-        'key': api_key,
-        'query': f"(receive_time geq '{query_time}')",
-        'nlogs': max_logs
-    }
+    while len(new_logs) < max_logs:
+        remaining_logs_needed = max_logs - len(new_logs)
+        payload = {
+            'type': 'log',
+            'log-type': log_type,
+            'key': api_key,
+            'nlogs': remaining_logs_needed  # Request only what’s needed
+        }
 
-    print(f"Fetching {max_logs} new logs since {query_time} at {current_time}")
-    response = requests.post(url, headers=headers, data=payload, verify=False)
+        response = requests.post(url, headers=headers, data=payload, verify=False)
 
-    if response.status_code == 200:
-        try:
-            response_xml = ET.fromstring(response.text)
-            if response_xml.attrib['status'] == 'success':
-                job_id = response_xml.find('.//job').text
-                logs = get_job_result(api_key, job_id)
+        if response.status_code == 200:
+            try:
+                response_xml = ET.fromstring(response.text)
+                if response_xml.attrib['status'] == 'success':
+                    job_id = response_xml.find('.//job').text
+                    logs = get_job_result(api_key, job_id)
 
-                if logs is None:
-                    print("No logs retrieved from job.")
-                    return None
+                    if logs is None:
+                        print("No logs retrieved from job.")
+                        break
 
-                new_logs = []
-                for log in logs:
-                    log_time_str = log.get('high_res_timestamp')
-                    try:
-                        # Normalize timestamp: "2025-0306T01:03:04:18.545+07:00" -> "20250306T01:03:04.18545+07:00"
-                        # Step 1: Remove hyphens between year, month, day
-                        log_time_str = log_time_str.replace('-', '', 2)  # Remove first two hyphens
-                        # Step 2: Replace the last colon (before microseconds) with a dot
-                        parts = log_time_str.rsplit(':', 1)  # Split on the last colon
-                        log_time_str = parts[0] + '.' + parts[1]  # Replace last : with .
-                        log_time = datetime.strptime(log_time_str, "%Y%m%dT%H:%M:%S.%f%z")
-                        if log_time > last_fetch_time:
+                    # Filter for new logs only
+                    for log in logs:
+                        session_id = log.get('sessionid')
+                        if session_id and (last_session_id is None or int(session_id) > int(last_session_id)):
                             new_logs.append(log)
-                    except (ValueError, TypeError) as e:
-                        print(f"Invalid timestamp in log: {log.get('high_res_timestamp')}, normalized to: {log_time_str}, error: {e}")
-                        continue
+                            if len(new_logs) == max_logs:
+                                break  # Stop once we have 100
 
-                new_logs.sort(key=lambda x: datetime.strptime(x.get('high_res_timestamp', '1970-01-01T00:00:00.000+00:00').replace('-', '', 2).rsplit(':', 1)[0] + '.' + x.get('high_res_timestamp', '1970-01-01T00:00:00.000+00:00').rsplit(':', 1)[1], "%Y%m%dT%H:%M:%S.%f%z"), reverse=True)
-                new_logs = new_logs[:max_logs]
+                    if not logs or len(new_logs) == len([log for log in logs if int(log.get('sessionid', 0)) > (int(last_session_id) if last_session_id else 0)]):
+                        break  # No more new logs available
 
-                if new_logs:
-                    latest_time_str = new_logs[0]['high_res_timestamp'].replace('-', '', 2).rsplit(':', 1)[0] + '.' + new_logs[0]['high_res_timestamp'].rsplit(':', 1)[1]
-                    last_fetch_time = datetime.strptime(latest_time_str, "%Y%m%dT%H:%M:%S.%f%z")
-                    print(f"Retrieved {len(new_logs)} new logs. Latest timestamp: {last_fetch_time}")
-                    for log in new_logs[:5]:
-                        print(f"Log: {log.get('src')} -> {log.get('dst')}, Time: {log.get('high_res_timestamp')}")
                 else:
-                    print("No new logs found since last fetch.")
-                
-                return new_logs
-            else:
-                print(f"Failed to retrieve logs: {response_xml.find('.//msg').text}")
-        except ET.ParseError as e:
-            print(f"Failed to parse response XML: {e}")
-            print("Response content:")
-            print(response.text)
+                    print(f"Failed to retrieve logs: {response_xml.find('.//msg').text}")
+                    break
+            except ET.ParseError as e:
+                print(f"Failed to parse response XML: {e}")
+                break
+        else:
+            print(f"HTTP error: {response.status_code} - {response.text}")
+            break
+
+        # Avoid infinite loop if no new logs are coming
+        if time.time() - fetch_start_time > 5:  # Timeout after 5 seconds
+            print("Timeout: Could not fetch enough new logs.")
+            break
+
+    if new_logs:
+        last_session_id = max([log['sessionid'] for log in new_logs if log.get('sessionid')], default=last_session_id)
+        print(f"Retrieved {len(new_logs)} new logs. Updated last_session_id: {last_session_id}")
+        for log in new_logs[:5]:  # Debug: Show first 5 logs
+            print(f"Log: {log.get('src')} -> {log.get('dst')}, Session ID: {log.get('sessionid')}, Time: {log.get('high_res_timestamp')}")
     else:
-        print(f"HTTP error: {response.status_code} - {response.text}")
-    return None
+        print("No new logs retrieved in this cycle.")
+
+    return new_logs

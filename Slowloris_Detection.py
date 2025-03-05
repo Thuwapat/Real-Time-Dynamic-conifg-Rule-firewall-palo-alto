@@ -10,7 +10,6 @@ def detect_slowloris_from_logs(logs, threshold_matches=5):
     """
     source_ip_matches = defaultdict(list)
     
-    # Slowloris characteristics based on your latest log
     slowloris_characteristics = {
         'application': 'web-browsing',
         'repeat-count': '1',
@@ -25,14 +24,12 @@ def detect_slowloris_from_logs(logs, threshold_matches=5):
     
     print(f"Total logs received for analysis: {len(logs)}")
     
-    # Analyze each log in the batch
     for log in logs:
         source_ip = log.get('src')
         packets_sent = int(log.get('pkts_sent', 0))
         packets_received = int(log.get('pkts_received', 0))
-        log_time_str = log.get('high_res_timestamp')  # For debug only, not filtering
+        log_time_str = log.get('high_res_timestamp')
         
-        # Check if log matches all Slowloris characteristics
         matches_characteristics = (
             log.get('app') == slowloris_characteristics['application'] and
             log.get('repeatcnt') == slowloris_characteristics['repeat-count'] and
@@ -51,7 +48,6 @@ def detect_slowloris_from_logs(logs, threshold_matches=5):
             source_ip_matches[source_ip].append(log)
             print(f"Matched log from {source_ip}: {log_time_str}, packets: {packets_sent}/{packets_received}")
     
-    # Identify suspicious source IPs based on number of matches
     slowloris_candidates = {}
     for src_ip, matched_logs in source_ip_matches.items():
         match_count = len(matched_logs)

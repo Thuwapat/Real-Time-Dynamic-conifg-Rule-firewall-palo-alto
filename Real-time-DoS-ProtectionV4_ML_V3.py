@@ -60,7 +60,7 @@ def detection_loop():
             
             # Slowloris detection from traffic logs
             if traffic_logs:
-                slowloris_candidates = detect_slowloris_from_logs(traffic_logs, threshold_connections=20, time_window=1)
+                slowloris_candidates = detect_slowloris_from_logs(traffic_logs, threshold_connections=5, time_window=1)
                 if slowloris_candidates:
                     print(">>>>>>>> Slowloris Attack Detected from Traffic Logs !!!!!! <<<<<<<<")
                     for src_ip, session_count in slowloris_candidates.items():
@@ -69,10 +69,11 @@ def detection_loop():
                         rule_name = f"Block_Slowloris_{src_ip.replace('.', '_')}"
                         if rule_name not in existing_rules:
                             print(f"Creating rule to block Slowloris from {src_ip} ({session_count} concurrent sessions)")
-                            # Uncomment and implement these functions as needed
-                            # create_dos_profile(firewall_ip, api_key, existing_rules)
-                            # create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
                             existing_rules.add(rule_name)
+                else:
+                    print("No Slowloris candidates detected in this cycle.")
+            else:
+                print("No new traffic logs retrieved.")
             
             # Existing DoS/DDoS detection logic
             if predicted_attack == 1:  # DoS attack

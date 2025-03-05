@@ -1,19 +1,16 @@
 # Slowloris_Detection.py
 from collections import defaultdict
-from datetime import datetime
 
-def detect_slowloris_from_logs(logs, fetch_time, threshold_connections=5, time_window=2):
+def detect_slowloris_from_logs(logs, threshold_matches=5):
     """
-    Detect Slowloris attack based on traffic logs, focusing on concurrent connections within a time window.
-    - logs: List of traffic log dictionaries from Palo Alto Firewall.
-    - fetch_time: Time when logs were fetched, for accurate time window comparison.
-    - threshold_connections: Minimum number of concurrent connections from a single IP to flag as suspicious (default: 5).
-    - time_window: Time window in seconds to consider logs as concurrent (default: 2 seconds).
-    Returns a dictionary of source IPs suspected of Slowloris with their concurrent session counts.
+    Detect Slowloris attack by analyzing a batch of traffic logs for characteristic matches.
+    - logs: List of traffic log dictionaries from Palo Alto Firewall (e.g., 100 logs).
+    - threshold_matches: Minimum number of logs from a single IP matching Slowloris characteristics to flag as suspicious (default: 5).
+    Returns a dictionary of source IPs suspected of Slowloris with their match counts.
     """
-    source_ip_sessions = defaultdict(list)
+    source_ip_matches = defaultdict(list)
     
-    # Characteristics based on your latest log
+    # Slowloris characteristics based on your latest log
     slowloris_characteristics = {
         'application': 'web-browsing',
         'repeat-count': '1',
@@ -26,26 +23,14 @@ def detect_slowloris_from_logs(logs, fetch_time, threshold_connections=5, time_w
         'tunneled-app': 'web-browsing'
     }
     
-    print(f"Fetch time for detection: {fetch_time}")
-    print(f"Total logs received: {len(logs)}")
+    print(f"Total logs received for analysis: {len(logs)}")
     
-    # Filter logs and group by source IP
+    # Analyze each log in the batch
     for log in logs:
         source_ip = log.get('src')
         packets_sent = int(log.get('pkts_sent', 0))
         packets_received = int(log.get('pkts_received', 0))
-        log_time_str = log.get('high_res_timestamp')
-        
-        # Parse the log timestamp
-        try:
-            log_time = datetime.strptime(log_time_str, "%Y-%m-%dT%H:%M:%S.%f%z")
-            time_diff = (fetch_time - log_time.replace(tzinfo=None)).total_seconds()
-            if abs(time_diff) > time_window:
-                print(f"Log skipped - outside time window: {log_time_str}, diff: {time_diff:.3f}s")
-                continue
-        except (ValueError, TypeError):
-            print(f"Invalid timestamp in log: {log_time_str}")
-            continue
+        log_time_str = log.get('high_res_timestamp')  # For debug only, not filtering
         
         # Check if log matches all Slowloris characteristics
         matches_characteristics = (
@@ -58,20 +43,20 @@ def detect_slowloris_from_logs(logs, fetch_time, threshold_connections=5, time_w
             log.get('risk_of_app') == slowloris_characteristics['risk-of-app'] and
             log.get('characteristic_of_app') == slowloris_characteristics['characteristic-of-app'] and
             log.get('tunneled_app') == slowloris_characteristics['tunneled-app'] and
-            packets_sent <= 50 and
-            packets_received <= 50
+            packets_sent <= 15 and
+            packets_received <= 15
         )
         
         if matches_characteristics:
-            source_ip_sessions[source_ip].append(log)
+            source_ip_matches[source_ip].append(log)
             print(f"Matched log from {source_ip}: {log_time_str}, packets: {packets_sent}/{packets_received}")
     
-    # Identify suspicious source IPs
+    # Identify suspicious source IPs based on number of matches
     slowloris_candidates = {}
-    for src_ip, sessions in source_ip_sessions.items():
-        concurrent_count = len(sessions)
-        print(f"Source IP {src_ip} has {concurrent_count} matching sessions")
-        if concurrent_count >= threshold_connections:
-            slowloris_candidates[src_ip] = concurrent_count
+    for src_ip, matched_logs in source_ip_matches.items():
+        match_count = len(matched_logs)
+        print(f"Source IP {src_ip} has {match_count} matching logs out of {len(logs)}")
+        if match_count >= threshold_matches:
+            slowloris_candidates[src_ip] = match_count
     
     return slowloris_candidates

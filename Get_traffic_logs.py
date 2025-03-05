@@ -3,13 +3,15 @@ import requests
 import xml.etree.ElementTree as ET
 import time
 import os
+from datetime import datetime, timedelta
 
 firewall_ip = os.environ.get("FIREWALL_IP")
 api_key = os.environ.get("API_KEY_PALO_ALTO")
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-last_session_id = None
+# Track the last fetch time to ensure logs are new
+last_fetch_time = None
 
 def get_job_result(api_key, job_id):
     url = f"https://{firewall_ip}/api/"
@@ -53,18 +55,26 @@ def get_job_result(api_key, job_id):
     return None
 
 def get_new_traffic_logs(api_key, log_type="traffic", max_logs=100):
-    global last_session_id
+    global last_fetch_time
 
     url = f"https://{firewall_ip}/api/"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+
+    # Use a time-based query to get recent logs
+    current_time = datetime.now()
+    if last_fetch_time is None:
+        last_fetch_time = current_time - timedelta(seconds=1)  # Initial fetch gets last second
+    query_time = last_fetch_time.strftime("%Y/%m/%d %H:%M:%S")
 
     payload = {
         'type': 'log',
         'log-type': log_type,
         'key': api_key,
+        'query': f"(receive_time geq '{query_time}')",  # Filter logs since last fetch
         'nlogs': max_logs
     }
 
+    print(f"Fetching {max_logs} new logs since {query_time} at {current_time}")
     response = requests.post(url, headers=headers, data=payload, verify=False)
 
     if response.status_code == 200:
@@ -78,19 +88,29 @@ def get_new_traffic_logs(api_key, log_type="traffic", max_logs=100):
                     print("No logs retrieved from job.")
                     return None
 
+                # Filter logs to ensure they're newer than last_fetch_time
                 new_logs = []
                 for log in logs:
-                    session_id = log.get('sessionid')
-                    if session_id and (last_session_id is None or int(session_id) > int(last_session_id)):
-                        new_logs.append(log)
+                    log_time_str = log.get('high_res_timestamp')
+                    try:
+                        log_time = datetime.strptime(log_time_str, "%Y-%m-%dT%H:%M:%S.%f%z")
+                        if log_time > last_fetch_time:
+                            new_logs.append(log)
+                    except (ValueError, TypeError):
+                        print(f"Invalid timestamp in log: {log_time_str}")
+                        continue
+
+                # Sort logs by timestamp and take the most recent 100
+                new_logs.sort(key=lambda x: datetime.strptime(x.get('high_res_timestamp', '1970-01-01T00:00:00.000+00:00'), "%Y-%m-%dT%H:%M:%S.%f%z"), reverse=True)
+                new_logs = new_logs[:max_logs]  # Ensure exactly 100 logs
 
                 if new_logs:
-                    last_session_id = max([log['sessionid'] for log in new_logs if log.get('sessionid')], default=last_session_id)
-                    print(f"Retrieved {len(new_logs)} new logs. Last session ID: {last_session_id}")
-                    for log in new_logs[:5]:  # Print first 5 logs for debugging
-                        print(f"Log: {log.get('src')} -> {log.get('dst')}, Session ID: {log.get('sessionid')}, Time: {log.get('high_res_timestamp')}")
+                    last_fetch_time = datetime.strptime(new_logs[0]['high_res_timestamp'], "%Y-%m-%dT%H:%M:%S.%f%z")
+                    print(f"Retrieved {len(new_logs)} new logs. Latest timestamp: {last_fetch_time}")
+                    for log in new_logs[:5]:
+                        print(f"Log: {log.get('src')} -> {log.get('dst')}, Time: {log.get('high_res_timestamp')}")
                 else:
-                    print("No new logs found.")
+                    print("No new logs found since last fetch.")
                 
                 return new_logs
             else:

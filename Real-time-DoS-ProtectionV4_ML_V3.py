@@ -32,7 +32,7 @@ def detection_loop():
     while True:
         session_data = fetch_info_sessions(firewall_ip, api_key)
         actsession_data = fetch_active_sessions(firewall_ip, api_key)
-        print(f"Fetching {LOG_SAMPLING_SIZE} traffic logs...")
+        print(f"Fetching {LOG_SAMPLING_SIZE} new traffic logs...")
         traffic_logs = get_new_traffic_logs(api_key, max_logs=LOG_SAMPLING_SIZE)
         
         if session_data is not None and actsession_data is not None:
@@ -55,7 +55,7 @@ def detection_loop():
             print(f"Predicted Attack Type: {predicted_attack}")
             print(f"Existing rules: {existing_rules}")
             
-            if traffic_logs:
+            if traffic_logs and len(traffic_logs) == LOG_SAMPLING_SIZE:  # Ensure we got 100 logs
                 slowloris_candidates = detect_slowloris_from_logs(traffic_logs, threshold_matches=5)
                 if slowloris_candidates:
                     print(">>>>>>>> Slowloris Attack Detected from Traffic Logs !!!!!! <<<<<<<<")
@@ -69,7 +69,7 @@ def detection_loop():
                 else:
                     print("No Slowloris candidates detected in this batch.")
             else:
-                print("No new traffic logs retrieved.")
+                print(f"Failed to retrieve 100 new logs. Got {len(traffic_logs) if traffic_logs else 0} logs instead.")
             
             if predicted_attack == 1:
                 print(">>>>>>>> DoS Detected by ML !!!!! <<<<<<<<")

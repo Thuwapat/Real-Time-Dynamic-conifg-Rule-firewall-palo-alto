@@ -8,8 +8,8 @@ import requests
 from session_funct import *
 from rules_config_funct import *
 from rules_manager import *
-from datetime import datetime
-from Slowloris_Detection import detect_slowloris
+from Slowloris_Detection import detect_slowloris_from_logs
+from Get_traffic_logs import get_new_traffic_logs  # Import the new function
 
 # Palo Alto firewall credentials and IP
 firewall_ip = os.environ.get("FIREWALL_IP")
@@ -17,6 +17,7 @@ api_key = os.environ.get("API_KEY_PALO_ALTO")
 POLL_INTERVAL = 1  # Seconds
 UNIQUE_IP_THRESHOLD = 1024
 ACTIVESESSION_THRESHOLD = 1024
+LOG_SAMPLING_SIZE = 100  # Number of logs to sample per second
 
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -35,8 +36,9 @@ def detection_loop():
         # Fetch session statistics
         session_data = fetch_info_sessions(firewall_ip, api_key)
         actsession_data = fetch_active_sessions(firewall_ip, api_key)
+        traffic_logs = get_new_traffic_logs(api_key, max_logs=LOG_SAMPLING_SIZE)  # Fetch 100 new traffic logs
         
-        if session_data is not None:
+        if session_data is not None and actsession_data is not None:
             cps, kbps, num_active, num_icmp, num_tcp, num_udp, pps = parse_info_sessions(session_data)
             session_count, unique_ip_count, zone_mapping = parse_act_sessions(actsession_data)
             
@@ -55,41 +57,43 @@ def detection_loop():
             predicted_attack = ml_model.predict(feature_vector)[0]
             print(f"Predicted Attack Type: {predicted_attack}")
             print(existing_rules)
-
-            slowloris_candidates = detect_slowloris(actsession_data)
-            if slowloris_candidates:
-                print(">>>>>>>> Slowloris Attack Detected !!!!!! <<<<<<<<")
-                for src_ip, session_count in slowloris_candidates.items():
-                    src_zone, dst_zone = zone_mapping.get(src_ip, ("unknown", "unknown"))
-                    rule_name = f"Block_Slowloris_{src_ip.replace('.', '_')}"
-                    if rule_name not in existing_rules:
-                        print(f"Creating rule to block Slowloris from {src_ip} ({session_count} suspicious sessions)")
-                        # Uncomment and implement these functions as needed
-                        # create_dos_profile(firewall_ip, api_key, existing_rules)
-                        # create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
-                        existing_rules.add(rule_name)
-
+            
+            # Slowloris detection from traffic logs
+            if traffic_logs:
+                slowloris_candidates = detect_slowloris_from_logs(traffic_logs, threshold_connections=20, time_window=1)
+                if slowloris_candidates:
+                    print(">>>>>>>> Slowloris Attack Detected from Traffic Logs !!!!!! <<<<<<<<")
+                    for src_ip, session_count in slowloris_candidates.items():
+                        src_zone = zone_mapping.get(src_ip, ("unknown", "unknown"))[0]
+                        dst_zone = zone_mapping.get(src_ip, ("unknown", "unknown"))[1]
+                        rule_name = f"Block_Slowloris_{src_ip.replace('.', '_')}"
+                        if rule_name not in existing_rules:
+                            print(f"Creating rule to block Slowloris from {src_ip} ({session_count} concurrent sessions)")
+                            # Uncomment and implement these functions as needed
+                            # create_dos_profile(firewall_ip, api_key, existing_rules)
+                            # create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
+                            existing_rules.add(rule_name)
+            
+            # Existing DoS/DDoS detection logic
             if predicted_attack == 1:  # DoS attack
                 print(">>>>>>>> DoS Detected by ML !!!!! <<<<<<<<")
                 for src_ip, count in session_count.items():
                     src_zone, dst_zone = zone_mapping[src_ip]
                     rule_name = f"Block_IP_{src_ip.replace('.', '_')}"
                     if rule_name in existing_rules:
-                        print(f"Rule {rule_name} already exists..skiping creation")
+                        print(f"Rule {rule_name} already exists..skipping creation")
                         continue
                     if rule_name not in existing_rules and count >= ACTIVESESSION_THRESHOLD:
-                        #create_dos_profile(firewall_ip, api_key, existing_rules)
-                        #create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
+                        # create_dos_profile(firewall_ip, api_key, existing_rules)
+                        # create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
                         existing_rules.add(rule_name)
             elif predicted_attack == 2 and unique_ip_count >= UNIQUE_IP_THRESHOLD:  # DDoS attack
                 print(">>>>>>>>> DDoS Detected by ML !!!!!! <<<<<<<<")
                 for src_ip, (src_zone, dst_zone) in zone_mapping.items():
                     rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
-                    if rule_name in existing_rules:
-                        continue
                     if rule_name not in existing_rules:
-                        #create_dos_profile(firewall_ip, api_key, existing_rules)
-                        #create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)
+                        # create_dos_profile(firewall_ip, api_key, existing_rules)
+                        # create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)
                         existing_rules.add(rule_name)
                     break  
         else:

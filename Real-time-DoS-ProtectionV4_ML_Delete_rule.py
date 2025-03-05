@@ -13,7 +13,8 @@ from rules_manager import *
 firewall_ip = os.environ.get("FIREWALL_IP")
 api_key = os.environ.get("API_KEY_PALO_ALTO")
 POLL_INTERVAL = 1  # Seconds
-UNIQUE_IP_THRESHOLD = 1020
+UNIQUE_IP_THRESHOLD = 1024
+ACTIVESESSION_THRESHOLD = 1024
 
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -61,7 +62,7 @@ def detection_loop():
                     if rule_name in existing_rules:
                         print(f"Rule {rule_name} already exists..skiping creation")
                         continue
-                    if rule_name not in existing_rules:
+                    if rule_name not in existing_rules and count >= ACTIVESESSION_THRESHOLD:
                         #create_dos_profile(firewall_ip, api_key, existing_rules)
                         #create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
                         existing_rules.add(rule_name)

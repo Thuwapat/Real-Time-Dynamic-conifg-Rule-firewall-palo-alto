@@ -13,15 +13,11 @@ requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.
 
 
 def fetch_active_sessions():
-    """
-    Fetch the active sessions from the Palo Alto firewall.
-    Returns the session data in XML format or None in case of an error.
-    """
+
     url = f"https://{firewall_ip}/api/"
     payload = {
         'type': 'op',
         'cmd': '<show><session><all></all></session></show>',
-      # 'cmd': '<show><session><all></all></session></show>',
         'key': api_key
     }
 
@@ -38,11 +34,7 @@ def fetch_active_sessions():
 
 
 def parse_sessions(session_data):
-    """
-    Parse the active session data and return:
-    1. List of session details (dictionary for each session)
-    2. Dictionary of session counts per source IP
-    """
+
     session_details = []
     session_count = defaultdict(int)
 
@@ -72,10 +64,7 @@ def parse_sessions(session_data):
 
 
 def display_session_statistics(session_details, session_count):
-    """
-    Display detailed session information for each active session
-    and the session count for each source IP.
-    """
+
     print("\n--- Active Session Details ---")
     for session in session_details:
         for key, value in session.items():
@@ -89,9 +78,7 @@ def display_session_statistics(session_details, session_count):
 
 
 def main():
-    """
-    Main loop to fetch, parse, and display session data periodically.
-    """
+
     POLL_INTERVAL = 10  # Time interval in seconds between API calls
 
     while True:

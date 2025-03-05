@@ -10,7 +10,6 @@ api_key = os.environ.get("API_KEY_PALO_ALTO")
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-# Track the last fetch time to ensure logs are new
 last_fetch_time = None
 
 def get_job_result(api_key, job_id):
@@ -60,17 +59,16 @@ def get_new_traffic_logs(api_key, log_type="traffic", max_logs=100):
     url = f"https://{firewall_ip}/api/"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
-    # Use a time-based query to get recent logs
     current_time = datetime.now()
     if last_fetch_time is None:
-        last_fetch_time = current_time - timedelta(seconds=1)  # Initial fetch gets last second
+        last_fetch_time = current_time - timedelta(seconds=1)
     query_time = last_fetch_time.strftime("%Y/%m/%d %H:%M:%S")
 
     payload = {
         'type': 'log',
         'log-type': log_type,
         'key': api_key,
-        'query': f"(receive_time geq '{query_time}')",  # Filter logs since last fetch
+        'query': f"(receive_time geq '{query_time}')",
         'nlogs': max_logs
     }
 
@@ -88,24 +86,25 @@ def get_new_traffic_logs(api_key, log_type="traffic", max_logs=100):
                     print("No logs retrieved from job.")
                     return None
 
-                # Filter logs to ensure they're newer than last_fetch_time
                 new_logs = []
                 for log in logs:
                     log_time_str = log.get('high_res_timestamp')
                     try:
-                        log_time = datetime.strptime(log_time_str, "%Y-%m-%dT%H:%M:%S.%f%z")
+                        # Normalize timestamp by replacing invalid parts
+                        # Handle "2025-0306T01:03:04:18.545+07:00" -> "2025-03-06T01:03:04.18545+07:00"
+                        log_time_str = log_time_str.replace('-', '', 1).replace('-', '', 1).replace(':', '.', 2)  # Fix year-month-day and seconds
+                        log_time = datetime.strptime(log_time_str, "%Y%m%dT%H:%M:%S.%f%z")
                         if log_time > last_fetch_time:
                             new_logs.append(log)
-                    except (ValueError, TypeError):
-                        print(f"Invalid timestamp in log: {log_time_str}")
+                    except (ValueError, TypeError) as e:
+                        print(f"Invalid timestamp in log: {log_time_str}, error: {e}")
                         continue
 
-                # Sort logs by timestamp and take the most recent 100
-                new_logs.sort(key=lambda x: datetime.strptime(x.get('high_res_timestamp', '1970-01-01T00:00:00.000+00:00'), "%Y-%m-%dT%H:%M:%S.%f%z"), reverse=True)
-                new_logs = new_logs[:max_logs]  # Ensure exactly 100 logs
+                new_logs.sort(key=lambda x: datetime.strptime(x.get('high_res_timestamp', '1970-01-01T00:00:00.000+00:00').replace('-', '', 1).replace('-', '', 1).replace(':', '.', 2), "%Y%m%dT%H:%M:%S.%f%z"), reverse=True)
+                new_logs = new_logs[:max_logs]  # Take the most recent 100
 
                 if new_logs:
-                    last_fetch_time = datetime.strptime(new_logs[0]['high_res_timestamp'], "%Y-%m-%dT%H:%M:%S.%f%z")
+                    last_fetch_time = datetime.strptime(new_logs[0]['high_res_timestamp'].replace('-', '', 1).replace('-', '', 1).replace(':', '.', 2), "%Y%m%dT%H:%M:%S.%f%z")
                     print(f"Retrieved {len(new_logs)} new logs. Latest timestamp: {last_fetch_time}")
                     for log in new_logs[:5]:
                         print(f"Log: {log.get('src')} -> {log.get('dst')}, Time: {log.get('high_res_timestamp')}")

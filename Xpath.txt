@@ -40,3 +40,36 @@ https://192.168.15.5/api/?type=op&key=LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaG
 </rule-hit-count>
 </result>
 </response>
+
+<response status="success">
+<result>
+<entry>
+<dst>192.168.10.12</dst>
+<xsource>192.168.11.36</xsource>
+<source>192.168.11.36</source>
+<xdst>192.168.10.12</xdst>
+<xsport>5163</xsport>
+<xdport>80</xdport>
+<sport>5163</sport>
+<dport>80</dport>
+<proto>6</proto>
+<from>untrust</from>
+<to>trust</to>
+<start-time>Wed Mar 5 19:30:28 2025</start-time>
+<nat>False</nat>
+<srcnat>False</srcnat>
+<dstnat>False</dstnat>
+<proxy>False</proxy>
+<decrypt-mirror>False</decrypt-mirror>
+<state>ACTIVE</state>
+<type>FLOW</type>
+<total-byte-count>30000</total-byte-count>
+<idx>124291</idx>
+<vsys-idx>1</vsys-idx>
+<vsys>vsys1</vsys>
+<application>undecided</application>
+<security-rule>untrunt to trust</security-rule>
+<ingress>ethernet1/4</ingress>
+<egress>ethernet1/3</egress>
+<flags> </flags>
+</entry>

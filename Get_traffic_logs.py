@@ -90,21 +90,25 @@ def get_new_traffic_logs(api_key, log_type="traffic", max_logs=100):
                 for log in logs:
                     log_time_str = log.get('high_res_timestamp')
                     try:
-                        # Normalize timestamp by replacing invalid parts
-                        # Handle "2025-0306T01:03:04:18.545+07:00" -> "2025-03-06T01:03:04.18545+07:00"
-                        log_time_str = log_time_str.replace('-', '', 1).replace('-', '', 1).replace(':', '.', 2)  # Fix year-month-day and seconds
+                        # Normalize timestamp: "2025-0306T01:03:04:18.545+07:00" -> "20250306T01:03:04.18545+07:00"
+                        # Step 1: Remove hyphens between year, month, day
+                        log_time_str = log_time_str.replace('-', '', 2)  # Remove first two hyphens
+                        # Step 2: Replace the last colon (before microseconds) with a dot
+                        parts = log_time_str.rsplit(':', 1)  # Split on the last colon
+                        log_time_str = parts[0] + '.' + parts[1]  # Replace last : with .
                         log_time = datetime.strptime(log_time_str, "%Y%m%dT%H:%M:%S.%f%z")
                         if log_time > last_fetch_time:
                             new_logs.append(log)
                     except (ValueError, TypeError) as e:
-                        print(f"Invalid timestamp in log: {log_time_str}, error: {e}")
+                        print(f"Invalid timestamp in log: {log.get('high_res_timestamp')}, normalized to: {log_time_str}, error: {e}")
                         continue
 
-                new_logs.sort(key=lambda x: datetime.strptime(x.get('high_res_timestamp', '1970-01-01T00:00:00.000+00:00').replace('-', '', 1).replace('-', '', 1).replace(':', '.', 2), "%Y%m%dT%H:%M:%S.%f%z"), reverse=True)
-                new_logs = new_logs[:max_logs]  # Take the most recent 100
+                new_logs.sort(key=lambda x: datetime.strptime(x.get('high_res_timestamp', '1970-01-01T00:00:00.000+00:00').replace('-', '', 2).rsplit(':', 1)[0] + '.' + x.get('high_res_timestamp', '1970-01-01T00:00:00.000+00:00').rsplit(':', 1)[1], "%Y%m%dT%H:%M:%S.%f%z"), reverse=True)
+                new_logs = new_logs[:max_logs]
 
                 if new_logs:
-                    last_fetch_time = datetime.strptime(new_logs[0]['high_res_timestamp'].replace('-', '', 1).replace('-', '', 1).replace(':', '.', 2), "%Y%m%dT%H:%M:%S.%f%z")
+                    latest_time_str = new_logs[0]['high_res_timestamp'].replace('-', '', 2).rsplit(':', 1)[0] + '.' + new_logs[0]['high_res_timestamp'].rsplit(':', 1)[1]
+                    last_fetch_time = datetime.strptime(latest_time_str, "%Y%m%dT%H:%M:%S.%f%z")
                     print(f"Retrieved {len(new_logs)} new logs. Latest timestamp: {last_fetch_time}")
                     for log in new_logs[:5]:
                         print(f"Log: {log.get('src')} -> {log.get('dst')}, Time: {log.get('high_res_timestamp')}")

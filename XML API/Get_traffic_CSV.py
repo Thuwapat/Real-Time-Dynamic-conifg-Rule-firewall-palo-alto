@@ -2,7 +2,7 @@ import os
 import json
 import time
 import pandas as pd
-from Get_traffic import get_all_logs
+from Get_traffic_logs import get_all_logs
 
 # ดึงค่า api_key จาก environment variables
 firewall_ip = os.environ.get("FIREWALL_IP")

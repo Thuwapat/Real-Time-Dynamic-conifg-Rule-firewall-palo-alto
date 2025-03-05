@@ -7,7 +7,7 @@ import numpy as np
 import joblib
 import pandas as pd
 import requests
-from Get_onlynew_traffic import get_new_traffic_logs # ดึงข้อมูลจาก Get_traffic.py
+from Get_traffic_logs import get_new_traffic_logs # ดึงข้อมูลจาก Get_traffic.py
 from rules_config_funct import *
 from rules_manager import *
 from sklearn.preprocessing import LabelEncoder

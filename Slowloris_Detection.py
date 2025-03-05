@@ -28,7 +28,7 @@ def detect_slowloris_from_logs(logs, threshold_matches=5):
         source_ip = log.get('src')
         packets_sent = int(log.get('pkts_sent', 0))
         packets_received = int(log.get('pkts_received', 0))
-        log_time_str = log.get('high_res_timestamp')
+        log_time_str = log.get('receive_time')  # Use receive_time for debug
         
         matches_characteristics = (
             log.get('app') == slowloris_characteristics['application'] and

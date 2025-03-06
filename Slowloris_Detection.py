@@ -25,10 +25,10 @@ def detect_slowloris_from_logs(logs, threshold_matches=5, time_window=1):
         bytes_sent = int(log.get('bytes_sent', 0))
         bytes_received = int(log.get('bytes_received', 0))
         receive_time_dt = log.get('receive_time_dt')
-        src_zone = log.get('from')  # ดึง source zone
-        dst_zone = log.get('to')    # ดึง destination zone
+        src_zone = log.get('from')  
+        dst_zone = log.get('to')   
         
-        # ตรวจสอบ receive_time_dt
+        # Check receive_time_dt
         if receive_time_dt is None:
             continue
         

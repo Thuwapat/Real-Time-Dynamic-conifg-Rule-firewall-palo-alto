@@ -38,10 +38,8 @@ def get_job_result(api_key, job_id):
                     for log in logs:
                         log_dict = {child.tag: child.text for child in log}
                         log_list.append(log_dict)
-                    print(f"Job {job_id} finished. Retrieved {len(log_list)} logs.")
                     return log_list
                 elif job_status in ('ACT', 'PEND'):
-                    print("Job is still processing. Waiting...")
                     time.sleep(0.5)
                 else:
                     print(f"Job failed with status: {job_status}")
@@ -68,7 +66,6 @@ def get_new_traffic_logs(api_key, log_type="traffic", max_logs=100):
         'nlogs': max_logs * 2  # Fetch 200 to filter down to 100 newest
     }
 
-    print(f"Fetching logs at {datetime.now()}")
     response = requests.post(url, headers=headers, data=payload, verify=False)
 
     if response.status_code == 200:

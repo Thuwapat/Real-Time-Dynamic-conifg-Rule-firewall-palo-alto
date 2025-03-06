@@ -83,7 +83,6 @@ def detection_loop():
                 for src_ip, count in session_count.items():
                     src_zone, dst_zone = zone_mapping[src_ip]
                     rule_name = f"Block_IP_{src_ip.replace('.', '_')}"
-                    print(count)
                     if rule_name in existing_rules:
                         print(f"Rule {rule_name} already exists..skipping creation")
                         continue

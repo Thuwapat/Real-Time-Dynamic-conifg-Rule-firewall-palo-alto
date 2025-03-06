@@ -1,6 +1,7 @@
 from collections import defaultdict
+from datetime import datetime, timedelta
 
-def detect_slowloris_from_logs(logs, threshold_matches=5):
+def detect_slowloris_from_logs(logs, threshold_matches=5, time_window=1):
     source_ip_matches = defaultdict(list)
     
     slowloris_characteristics = {
@@ -42,10 +43,15 @@ def detect_slowloris_from_logs(logs, threshold_matches=5):
             print(f"Matched log from {source_ip}: {log_time_str}, packets: {packets_sent}/{packets_received}")
     
     slowloris_candidates = {}
-    for src_ip, matched_logs in source_ip_matches.items():
-        match_count = len(matched_logs)
-        print(f"Source IP {src_ip} has {match_count} matching logs out of {len(logs)}")
-        if match_count >= threshold_matches:
-            slowloris_candidates[src_ip] = match_count
+    for src_ip, timestamps in source_ip_matches.items():
+        if len(timestamps) < threshold_matches:
+            continue
+        timestamps.sort()
+        for i in range(len(timestamps) - threshold_matches + 1):
+            window = timestamps[i:i + threshold_matches]
+            if window[-1] - window[0] <= timedelta(seconds=time_window):
+                slowloris_candidates[src_ip] = len(timestamps)
+                print(f"Slowloris detected from {src_ip}: {len(timestamps)} logs in {time_window} sec")
+                break
     
     return slowloris_candidates

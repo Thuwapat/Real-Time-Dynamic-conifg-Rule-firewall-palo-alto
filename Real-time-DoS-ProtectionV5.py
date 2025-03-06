@@ -91,10 +91,12 @@ def detection_loop():
 
             if rules_to_create:
                 commit_changes(firewall_ip, api_key)  # Commit ครั้งเดียว
+                all_rules_ready = True
                 for src_ip, src_zone, dst_zone, rule_name in rules_to_create:
                     result = get_rule_last_hit_payload(rule_name)
                     if not isinstance(result, ET.Element):
                         print(f"Error: get_rule_last_hit_payload returned invalid result for {rule_name}: {result}")
+                        all_rules_ready = False
                         continue
                     
                     creation_elem = result.find(".//rules/entry/rule-creation-timestamp")
@@ -102,12 +104,15 @@ def detection_loop():
                         try:
                             creation_time = int(creation_elem.text.strip())
                             print(f"Rule {rule_name} created with creation time {creation_time}")
-                            existing_rules.add(rule_name)  # เพิ่ม Rule เข้า set ทันที
+                            # ไม่เพิ่ม existing_rules.add(rule_name) ที่นี่
                         except ValueError:
                             print(f"Error: Invalid creation time format for {rule_name}: {creation_elem.text}")
+                            all_rules_ready = False
                     else:
                         print(f"Rule {rule_name} created but no valid creation time found. creation_elem: {creation_elem}")
-                    
+                        all_rules_ready = False
+                # ไม่เรียก clear_sessions ที่นี่
+                                
             # Check DDoS 
             if len(dos_ips) >= DDOS_IP_THRESHOLD:
                 print(">>>>>>>>> DDoS Detected: Multiple DoS IPs !!!!!! <<<<<<<<")

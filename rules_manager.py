@@ -75,17 +75,18 @@ def check_and_remove_rule(rule_name, existing_rules):
         print(f"Cannot retrieve creation time for {rule_name}. Skipping until creation time is available.")
         return
     creation_time = int(creation_elem.text.strip())
+
+    # ดึง src_ip และล้าง session สำหรับ Rule ใหม่
     if "Block_Slowloris_" in rule_name or "Block_IP_" in rule_name:
         src_ip = rule_name.replace("Block_Slowloris_", "").replace("Block_IP_", "").replace("_", ".")
-        # ล้าง session เมื่อได้ creation time (เฉพาะครั้งแรกที่เห็น Rule)
         if rule_name not in existing_rules:
             clear_sessions(firewall_ip, api_key, src_ip)
             print(f"Cleared sessions for {src_ip} after confirming creation time for {rule_name}")
-            
+            existing_rules.add(rule_name)  # เพิ่ม Rule เข้า set หลังล้าง session
+
     current_time = int(time.time())
     time_since_creation = current_time - creation_time
 
-    # รอ Grace Period ก่อนตรวจสอบ last hit
     if time_since_creation < GRACE_PERIOD:
         print(f"Rule {rule_name} is within grace period ({time_since_creation}/{GRACE_PERIOD} sec). Skipping removal.")
         return

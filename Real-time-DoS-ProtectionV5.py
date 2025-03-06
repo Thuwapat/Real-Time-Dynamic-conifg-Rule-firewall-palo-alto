@@ -124,7 +124,7 @@ def detection_loop():
         time.sleep(POLL_INTERVAL)
 
 def rule_check_loop():
-    while True:
+    while not stop_event.is_set():
         print("..............Checking rules..............")
         for rule in list(existing_rules):
             check_and_remove_rule(rule, existing_rules)

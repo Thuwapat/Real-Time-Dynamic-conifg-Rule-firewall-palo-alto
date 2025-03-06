@@ -94,7 +94,7 @@ def detection_loop():
             # Check DDoS 
             if len(dos_ips) >= DDOS_IP_THRESHOLD:
                 print(">>>>>>>>> DDoS Detected: Multiple DoS IPs !!!!!! <<<<<<<<")
-                for src_ip in dos_ips:  # บล็อกโซนของ IP ที่เป็น DoS
+                for src_ip in dos_ips: 
                     src_zone, dst_zone = zone_mapping[src_ip]
                     rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
                     if rule_name not in existing_rules:
@@ -105,7 +105,6 @@ def detection_loop():
             # Check Unique IP 
             elif unique_ip_count >= DDOS_UNIQUE_IP_THRESHOLD:
                 print(">>>>>>>>> DDoS Detected: High Unique IP Count !!!!!! <<<<<<<<")
-                # เลือก IP ตัวอย่างจาก zone_mapping เพื่อบล็อกโซน
                 for src_ip, (src_zone, dst_zone) in list(zone_mapping.items())[:1]: 
                     rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
                     if rule_name not in existing_rules:
@@ -116,7 +115,7 @@ def detection_loop():
             elif dos_ips:
                 print(f"DoS detected from {len(dos_ips)} IP(s), not enough for DDoS (threshold: {DDOS_IP_THRESHOLD})")
             else:
-                print(f"No DoS or DDoS detected by ML. Unique IP count: {unique_ip_count}")
+                print(f"..............No DoS or DDoS detected by ML..............")
         
         else:
             print("No session data found.")

@@ -105,9 +105,16 @@ def check_and_remove_rule(rule_name, existing_rules):
           f"time_since_creation={time_since_creation}, time_difference={time_difference}")
 
     # ตรวจสอบเงื่อนไขการลบ
-    if last_hit == 0 or time_difference > inactive_threshold:
+    if time_since_creation < CHECK_DELAY:
+        print(f"Rule {rule_name} is new (created {time_since_creation} sec ago). Skipping removal.")
+        return
+    elif last_hit == 0 and time_since_creation > inactive_threshold:
+        print(f"Rule {rule_name} ({rule_type}) has never been hit and is past threshold ({time_since_creation} sec since creation). Deleting rule.")
+        delete_rule(rule_name)
+        del existing_rules[rule_name]
+    elif time_difference > inactive_threshold:
         print(f"Rule {rule_name} ({rule_type}) is inactive for over {inactive_threshold} seconds (last hit: {last_hit}). Deleting rule.")
         delete_rule(rule_name)
-        del existing_rules[rule_name]  # ลบออกจาก dict
+        del existing_rules[rule_name]
     else:
         print(f"Rule {rule_name} ({rule_type}) is active. Last hit time: {last_hit} (current time: {current_time}, diff: {time_difference} sec).")

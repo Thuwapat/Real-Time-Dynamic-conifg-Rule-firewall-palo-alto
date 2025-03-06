@@ -104,15 +104,21 @@ def detection_loop():
                         try:
                             creation_time = int(creation_elem.text.strip())
                             print(f"Rule {rule_name} created with creation time {creation_time}")
-                            # ไม่เพิ่ม existing_rules.add(rule_name) ที่นี่
+                            existing_rules.add(rule_name)
                         except ValueError:
                             print(f"Error: Invalid creation time format for {rule_name}: {creation_elem.text}")
                             all_rules_ready = False
                     else:
                         print(f"Rule {rule_name} created but no valid creation time found. creation_elem: {creation_elem}")
                         all_rules_ready = False
-                # ไม่เรียก clear_sessions ที่นี่
-                                
+                
+                if all_rules_ready:
+                    for src_ip in ips_to_clear:
+                        clear_sessions(firewall_ip, api_key, src_ip)  # ล้าง session ทันทีเมื่อ Rule ทุกตัวพร้อม
+                    print("All rules are ready, sessions cleared.")
+                else:
+                    print("Some rules are not ready, skipping session clear.")
+
             # Check DDoS 
             if len(dos_ips) >= DDOS_IP_THRESHOLD:
                 print(">>>>>>>>> DDoS Detected: Multiple DoS IPs !!!!!! <<<<<<<<")

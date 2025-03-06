@@ -4,6 +4,7 @@ import pickle
 import threading
 import pandas as pd
 import requests
+import sys
 from session_funct import *
 from rules_config_funct import *
 from rules_manager import *
@@ -22,7 +23,7 @@ DDOS_IP_THRESHOLD = 2
 DDOS_UNIQUE_IP_THRESHOLD = 1024
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
-
+stop_event = threading.Event()
 existing_rules = set()
 
 with open('dos_detection_model.pkl', 'rb') as model_file:
@@ -32,7 +33,7 @@ print("-------- Start Real-Time DoS/DDoS Protection with ML --------")
 
 def detection_loop():
     create_dos_profile(firewall_ip, api_key)
-    while True:
+    while not stop_event.is_set():
         session_data = fetch_info_sessions(firewall_ip, api_key)
         actsession_data = fetch_active_sessions(firewall_ip, api_key)
         traffic_logs = get_new_traffic_logs(api_key, max_logs=LOG_SAMPLING_SIZE)
@@ -129,11 +130,25 @@ def rule_check_loop():
             check_and_remove_rule(rule, existing_rules)
         time.sleep(5)
 
+def input_loop():
+    while not stop_event.is_set():
+        user_input = input().strip().lower()
+        if user_input == 'q':
+            print("Received 'q'. Shutting down...")
+            stop_event.set()  # ส่งสัญญาณให้ threads หยุด
+            break
+
 detection_thread = threading.Thread(target=detection_loop, name="DetectionThread", daemon=True)
 rule_check_thread = threading.Thread(target=rule_check_loop, name="RuleCheckThread", daemon=True)
+input_thread = threading.Thread(target=input_loop, name="InputThread", daemon=True)
 
 detection_thread.start()
 rule_check_thread.start()
+input_thread.start()
 
 detection_thread.join()
 rule_check_thread.join()
+input_thread.join()
+
+print("Program has stopped.")
+sys.exit(0)

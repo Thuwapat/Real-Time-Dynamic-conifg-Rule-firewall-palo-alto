@@ -63,14 +63,16 @@ def detection_loop():
                 slowloris_candidates = detect_slowloris_from_logs(traffic_logs, threshold_matches=5)
                 if slowloris_candidates:
                     print(">>>>>>>> Slowloris Attack Detected from Traffic Logs !!!!!! <<<<<<<<")
-                    for src_ip, match_count in slowloris_candidates.items():
-                        src_zone = zone_mapping.get(src_ip, ("unknown", "unknown"))[0]
-                        dst_zone = zone_mapping.get(src_ip, ("unknown", "unknown"))[1]
+                    for src_ip, candidate_info in slowloris_candidates.items():
+                        match_count = candidate_info['match_count']
+                        src_zone = candidate_info['src_zone']
+                        dst_zone = candidate_info['dst_zone']
                         rule_name = f"Block_Slowloris_{src_ip.replace('.', '_')}"
                         if rule_name not in existing_rules:
-                            print(f"Creating rule to block Slowloris from {src_ip} ({match_count} matching logs)")
-                            create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
-                            existing_rules.add(rule_name)
+                            if src_zone and dst_zone: 
+                                print(f"Creating rule to block Slowloris from {src_ip} ({match_count} matching logs)")
+                                create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
+                                existing_rules.add(rule_name)
                 else:
                     print("No Slowloris candidates detected in this batch.")
             else:

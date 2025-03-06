@@ -3,7 +3,6 @@ import time
 import requests
 import xml.etree.ElementTree as ET
 from rules_config_funct import commit_changes
-import urllib.parse
 
 # ดึงค่า firewall_ip และ api_key จาก environment variable
 firewall_ip = os.environ.get("FIREWALL_IP")
@@ -11,6 +10,7 @@ api_key = os.environ.get("API_KEY_PALO_ALTO")
 
 DEFAULT_INACTIVE_THRESHOLD = 30  
 SLOWLORIS_INACTIVE_THRESHOLD = 60  
+GRACE_PERIOD = 10  # วินาทีสำหรับรอหลังสร้าง Rule
 
 def get_rule_last_hit_payload(rule_name):
     xml_cmd = f"""
@@ -70,29 +70,38 @@ def check_and_remove_rule(rule_name, existing_rules):
     result = get_rule_last_hit_payload(rule_name)
 
     if isinstance(result, ET.Element):
+        # ดึง last-hit-timestamp
         ts_elem = result.find(".//rules/entry/last-hit-timestamp")
-        if ts_elem is not None and ts_elem.text is not None:
-            try:
-                last_hit = int(ts_elem.text.strip())
-                current_time = int(time.time())
-                time_difference = current_time - last_hit
+        last_hit = int(ts_elem.text.strip()) if ts_elem is not None and ts_elem.text is not None else 0
 
-                if "Block_Slowloris" in rule_name:
-                    inactive_threshold = SLOWLORIS_INACTIVE_THRESHOLD
-                    rule_type = "Slowloris"
-                else:
-                    inactive_threshold = DEFAULT_INACTIVE_THRESHOLD
-                    rule_type = "DoS/DDoS"
+        # ดึง rule-creation-timestamp (สมมติว่าอยู่ใน response เดียวกัน)
+        creation_elem = result.find(".//rules/entry/rule-creation-timestamp")
+        creation_time = int(creation_elem.text.strip()) if creation_elem is not None and creation_elem.text is not None else int(time.time())
 
-                if last_hit == 0 or time_difference > inactive_threshold:
-                    print(f"Rule {rule_name} ({rule_type}) is inactive for over {inactive_threshold} seconds (last hit: {last_hit}). Deleting rule.")
-                    delete_rule(rule_name)
-                    existing_rules.discard(rule_name)
-                else:
-                    print(f"Rule {rule_name} ({rule_type}) is active. Last hit time: {last_hit} (current time: {current_time}, diff: {time_difference} sec).")
-            except ValueError:
-                print(f"Invalid last-hit-timestamp for rule {rule_name}: {ts_elem.text}")
+        current_time = int(time.time())
+        time_since_creation = current_time - creation_time
+        time_difference = current_time - last_hit if last_hit > 0 else float('inf')  # ถ้า last_hit = 0 ให้ถือว่าไม่ใช้งาน
+
+        # กำหนด threshold
+        if "Block_Slowloris" in rule_name:
+            inactive_threshold = SLOWLORIS_INACTIVE_THRESHOLD
+            rule_type = "Slowloris"
         else:
-            print(f"Could not find last-hit-timestamp for rule {rule_name}. Please wait.. Rules is pending.....")
+            inactive_threshold = DEFAULT_INACTIVE_THRESHOLD
+            rule_type = "DoS/DDoS"
+
+        # ดีบักข้อมูล
+        print(f"Debug: Rule {rule_name}, creation_time={creation_time}, last_hit={last_hit}, current_time={current_time}, "
+              f"time_since_creation={time_since_creation}, time_difference={time_difference}")
+
+        # ตรวจสอบเงื่อนไขการลบ
+        if time_since_creation < GRACE_PERIOD:
+            print(f"Rule {rule_name} ({rule_type}) is new (created {time_since_creation} sec ago). Skipping removal.")
+        elif last_hit == 0 or time_difference > inactive_threshold:
+            print(f"Rule {rule_name} ({rule_type}) is inactive for over {inactive_threshold} seconds (last hit: {last_hit}). Deleting rule.")
+            delete_rule(rule_name)
+            existing_rules.discard(rule_name)
+        else:
+            print(f"Rule {rule_name} ({rule_type}) is active. Last hit time: {last_hit} (current time: {current_time}, diff: {time_difference} sec).")
     else:
-        print(f"Please wait.. Rules is Creating.... ")
+        print(f"Please wait.. Rules is Creating.... {result}")

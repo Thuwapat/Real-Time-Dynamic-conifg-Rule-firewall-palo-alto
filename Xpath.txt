@@ -176,3 +176,11 @@ https://192.168.15.5/api/?type=op&key=LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaG
         "monitortag": "0",
         "imei": null
     }
+
+https://192.168.15.5/api/?type=op&cmd=%3Cclear%3E%3Csession%3E%3Call%3E%3C/all%3E%3C/session%3E%3C/clear%3E&key=LUFRPT1MNHgrYlFXcVc1bTYxa0F6TUNwZHdqL2lhaGM9cGRQSGNpeTFDWVA4cnlKcUFnaEQzaERMWVJyOWtVcnNuK3NVUWRSQ1MvVkFLYjJ1UXUxQ3ZCOHBrb25PU0hLeA==
+
+<response status="success">
+<result>
+<member>All sessions cleared</member>
+</result>
+</response>

@@ -72,7 +72,7 @@ def create_dos_profile(firewall_ip, api_key):
         print(f"Failed to create DoS Protection Policy: {response.status_code} - {response.text}")
 
 # Create a DoS Protection Policy for a specific source IP.
-def create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules):
+def create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules, commit=True):
 
     url = f"https://{firewall_ip}/restapi/v10.2/Policies/DoSRules?location=vsys&vsys=vsys1&name={rule_name}"
     headers = {'Content-Type': 'application/json', 'X-PAN-KEY': api_key}
@@ -115,8 +115,9 @@ def create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zon
 
     response = requests.post(url, headers=headers, json=payload, verify=False)
     if response.status_code == 200:
-        commit_changes(firewall_ip, api_key)
         print(f"DoS Protection Policy created successfully: {rule_name}")
+        if commit:
+            commit_changes(firewall_ip, api_key)
         if rule_name not in existing_rules:
                 print(f"Policy {rule_name} already exists")
                 existing_rules.add(rule_name)

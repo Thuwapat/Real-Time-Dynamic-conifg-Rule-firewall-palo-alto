@@ -83,12 +83,13 @@ def detection_loop():
                 for src_ip, count in session_count.items():
                     src_zone, dst_zone = zone_mapping[src_ip]
                     rule_name = f"Block_IP_{src_ip.replace('.', '_')}"
+                    print(count)
                     if rule_name in existing_rules:
                         print(f"Rule {rule_name} already exists..skipping creation")
-                        create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
                         continue
                     if count >= ACTIVESESSION_THRESHOLD:
                         print(f"DoS detected from {src_ip} with {count} sessions")
+                        create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
                         dos_ips.add(src_ip)
                         existing_rules.add(rule_name)
             

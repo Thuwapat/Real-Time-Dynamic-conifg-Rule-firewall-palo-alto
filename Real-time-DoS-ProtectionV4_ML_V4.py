@@ -35,7 +35,6 @@ def detection_loop():
     while True:
         session_data = fetch_info_sessions(firewall_ip, api_key)
         actsession_data = fetch_active_sessions(firewall_ip, api_key)
-        print(f"Fetching {LOG_SAMPLING_SIZE} traffic logs...")
         traffic_logs = get_new_traffic_logs(api_key, max_logs=LOG_SAMPLING_SIZE)
         
         if session_data is not None and actsession_data is not None:
@@ -75,8 +74,6 @@ def detection_loop():
                                 existing_rules.add(rule_name)
                 else:
                     print("No Slowloris candidates detected in this batch.")
-            else:
-                print("No new traffic logs retrieved.")
             
             # Check DoS and Store DoS IP IF >= 2 this is DDoS
             dos_ips = set()  

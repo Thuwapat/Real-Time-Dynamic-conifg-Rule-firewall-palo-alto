@@ -30,7 +30,6 @@ def detect_slowloris_from_logs(logs, threshold_matches=5, time_window=1):
         
         # ตรวจสอบ receive_time_dt
         if receive_time_dt is None:
-            print(f"Skipping log from {source_ip} due to missing or invalid receive_time")
             continue
         
         matches_characteristics = (
@@ -50,29 +49,24 @@ def detect_slowloris_from_logs(logs, threshold_matches=5, time_window=1):
         )
         
         if matches_characteristics:
-            # เก็บ tuple ของ (receive_time_dt, src_zone, dst_zone)
             source_ip_matches[source_ip].append((receive_time_dt, src_zone, dst_zone))
-            print(f"Matched log from {source_ip}: {receive_time_dt}, packets: {packets_sent}/{packets_received}, from: {src_zone}, to: {dst_zone}")
     
     slowloris_candidates = {}
     for src_ip, entries in source_ip_matches.items():
         match_count = len(entries)
-        print(f"Source IP {src_ip} has {match_count} matching logs")
         
         if match_count < threshold_matches:
             continue
         
-        # แยก timestamps ออกมาเพื่อเรียงลำดับ
+        # Sort timestamps 
         timestamps = [entry[0] for entry in entries]
         timestamps.sort()
         
-        # ตรวจสอบความถี่ใน time window
         for i in range(len(timestamps) - threshold_matches + 1):
             window = timestamps[i:i + threshold_matches]
             time_diff = window[-1] - window[0]
             if time_diff <= timedelta(seconds=time_window):
-                # ดึง src_zone และ dst_zone จาก entry ล่าสุด (หรือเลือกอย่างอื่นตามความเหมาะสม)
-                src_zone = entries[-1][1]  # ใช้ zone จาก log ล่าสุด
+                src_zone = entries[-1][1]  
                 dst_zone = entries[-1][2]
                 slowloris_candidates[src_ip] = {
                     'match_count': match_count,

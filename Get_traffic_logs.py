@@ -1,4 +1,3 @@
-# Get_traffic_logs.py
 import requests
 import xml.etree.ElementTree as ET
 import time
@@ -10,8 +9,8 @@ api_key = os.environ.get("API_KEY_PALO_ALTO")
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-# Track the latest receive_time processed
-last_receive_time = None
+# Track the latest receive_time processed, initialize with current time
+last_receive_time = datetime.now() 
 
 def get_job_result(api_key, job_id):
     url = f"https://{firewall_ip}/api/"
@@ -58,14 +57,14 @@ def get_new_traffic_logs(api_key, log_type="traffic", max_logs=100):
     url = f"https://{firewall_ip}/api/"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
-    # Fetch more logs initially to ensure we get enough recent ones
     payload = {
         'type': 'log',
         'log-type': log_type,
         'key': api_key,
-        'nlogs': max_logs * 2  # Fetch 200 to filter down to 100 newest
+        'nlogs': max_logs * 2
     }
 
+    print(f"Fetching logs at {datetime.now()}")  # เพิ่ม print ตามที่เคยพูดถึง
     response = requests.post(url, headers=headers, data=payload, verify=False)
 
     if response.status_code == 200:
@@ -86,22 +85,22 @@ def get_new_traffic_logs(api_key, log_type="traffic", max_logs=100):
                         log['receive_time_dt'] = datetime.strptime(receive_time_str, "%Y/%m/%d %H:%M:%S")
                     except (ValueError, TypeError):
                         print(f"Invalid receive_time in log: {receive_time_str}")
-                        log['receive_time_dt'] = datetime.min  # Fallback for sorting
+                        log['receive_time_dt'] = datetime.min
 
                 # Sort logs by receive_time (newest first)
                 sorted_logs = sorted(logs, key=lambda x: x['receive_time_dt'], reverse=True)
 
-                # Filter to only logs newer than last_receive_time (if set)
-                if last_receive_time:
-                    new_logs = [log for log in sorted_logs if log['receive_time_dt'] > last_receive_time]
-                else:
-                    new_logs = sorted_logs
+                # Filter to only logs newer than last_receive_time
+                new_logs = [log for log in sorted_logs if log['receive_time_dt'] > last_receive_time]
 
                 # Take the 100 most recent logs
                 new_logs = new_logs[:max_logs]
 
                 if new_logs:
                     last_receive_time = max(log['receive_time_dt'] for log in new_logs)
+                    print(f"Retrieved {len(new_logs)} new logs. Latest receive_time: {last_receive_time}")
+                else:
+                    print("No new logs found after filtering.")
                 return new_logs
             else:
                 print(f"Failed to retrieve logs: {response_xml.find('.//msg').text}")

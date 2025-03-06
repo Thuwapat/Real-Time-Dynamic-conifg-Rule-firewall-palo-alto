@@ -3,6 +3,7 @@ import time
 import requests
 import xml.etree.ElementTree as ET
 from rules_config_funct import commit_changes
+from session_funct import clear_sessions
 
 # ดึงค่า firewall_ip และ api_key จาก environment variable
 firewall_ip = os.environ.get("FIREWALL_IP")
@@ -74,7 +75,13 @@ def check_and_remove_rule(rule_name, existing_rules):
         print(f"Cannot retrieve creation time for {rule_name}. Skipping until creation time is available.")
         return
     creation_time = int(creation_elem.text.strip())
-
+    if "Block_Slowloris_" in rule_name or "Block_IP_" in rule_name:
+        src_ip = rule_name.replace("Block_Slowloris_", "").replace("Block_IP_", "").replace("_", ".")
+        # ล้าง session เมื่อได้ creation time (เฉพาะครั้งแรกที่เห็น Rule)
+        if rule_name not in existing_rules:
+            clear_sessions(firewall_ip, api_key, src_ip)
+            print(f"Cleared sessions for {src_ip} after confirming creation time for {rule_name}")
+            
     current_time = int(time.time())
     time_since_creation = current_time - creation_time
 

@@ -8,10 +8,10 @@ from rules_config_funct import commit_changes
 firewall_ip = os.environ.get("FIREWALL_IP")
 api_key = os.environ.get("API_KEY_PALO_ALTO")
 
-DEFAULT_INACTIVE_THRESHOLD = 60  
-SLOWLORIS_INACTIVE_THRESHOLD = 60  
+DEFAULT_INACTIVE_THRESHOLD = 120  
+SLOWLORIS_INACTIVE_THRESHOLD = 120
 CHECK_DELAY = 10  # รอ 10 วินาทีก่อนเริ่มตรวจสอบ last hit time
-GRACE_PERIOD = 60
+GRACE_PERIOD = 120
 
 def get_rule_last_hit_payload(rule_name):
     xml_cmd = f"""
@@ -78,8 +78,9 @@ def check_and_remove_rule(rule_name, existing_rules):
     current_time = int(time.time())
     time_since_creation = current_time - creation_time
 
-    if time_since_creation < CHECK_DELAY:
-        print(f"Rule {rule_name} is new (created {time_since_creation} sec ago). Waiting {CHECK_DELAY - time_since_creation} sec before checking last hit.")
+    # รอ Grace Period ก่อนตรวจสอบ last hit
+    if time_since_creation < GRACE_PERIOD:
+        print(f"Rule {rule_name} is within grace period ({time_since_creation}/{GRACE_PERIOD} sec). Skipping removal.")
         return
 
     ts_elem = result.find(".//rules/entry/last-hit-timestamp")
@@ -96,16 +97,13 @@ def check_and_remove_rule(rule_name, existing_rules):
     print(f"Debug: Rule {rule_name}, creation_time={creation_time}, last_hit={last_hit}, current_time={current_time}, "
           f"time_since_creation={time_since_creation}, time_difference={time_difference}")
 
-    if time_since_creation < CHECK_DELAY:
-        print(f"Rule {rule_name} is new (created {time_since_creation} sec ago). Skipping removal.")
-        return
-    elif last_hit == 0 and time_since_creation > inactive_threshold:
+    if last_hit == 0 and time_since_creation > inactive_threshold + GRACE_PERIOD:
         print(f"Rule {rule_name} ({rule_type}) has never been hit and is past threshold ({time_since_creation} sec since creation). Deleting rule.")
         delete_rule(rule_name)
-        existing_rules.remove(rule_name)  
+        existing_rules.remove(rule_name)
     elif time_difference > inactive_threshold:
         print(f"Rule {rule_name} ({rule_type}) is inactive for over {inactive_threshold} seconds (last hit: {last_hit}). Deleting rule.")
         delete_rule(rule_name)
-        existing_rules.remove(rule_name)  
+        existing_rules.remove(rule_name)
     else:
         print(f"Rule {rule_name} ({rule_type}) is active. Last hit time: {last_hit} (current time: {current_time}, diff: {time_difference} sec).")

@@ -5,7 +5,6 @@ import pickle
 import threading
 import pandas as pd
 import requests
-from datetime import datetime  # For general use, though not needed for Slowloris here
 from session_funct import *
 from rules_config_funct import *
 from rules_manager import *

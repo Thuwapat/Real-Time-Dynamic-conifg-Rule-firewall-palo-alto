@@ -1,13 +1,6 @@
-# Slowloris_Detection.py
 from collections import defaultdict
 
 def detect_slowloris_from_logs(logs, threshold_matches=5):
-    """
-    Detect Slowloris attack by analyzing a batch of traffic logs for characteristic matches.
-    - logs: List of traffic log dictionaries from Palo Alto Firewall (e.g., 100 logs).
-    - threshold_matches: Minimum number of logs from a single IP matching Slowloris characteristics to flag as suspicious (default: 5).
-    Returns a dictionary of source IPs suspected of Slowloris with their match counts.
-    """
     source_ip_matches = defaultdict(list)
     
     slowloris_characteristics = {

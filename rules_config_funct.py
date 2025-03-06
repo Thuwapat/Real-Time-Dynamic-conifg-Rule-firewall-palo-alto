@@ -1,7 +1,7 @@
 import requests
 import xml.etree.ElementTree as ET
 # Function to create a DoS profile using REST API
-def create_dos_profile(firewall_ip, api_key, existing_rules):
+def create_dos_profile(firewall_ip, api_key):
     profile_name = "default-profile"
     url = f"https://{firewall_ip}/restapi/v10.2/Objects/DoSProtectionSecurityProfiles?location=vsys&vsys=vsys1&name={profile_name}"
     headers = {'Content-Type': 'application/json', 'X-PAN-KEY': api_key}
@@ -66,9 +66,7 @@ def create_dos_profile(firewall_ip, api_key, existing_rules):
         commit_changes(firewall_ip, api_key)
         print(f"DoS Protection Policy created successfully: {profile_name}")
     elif response.status_code == 409:
-        if profile_name not in existing_rules:
-                print(f"Policy {profile_name} already exists")
-                existing_rules.add(profile_name)
+        print(f"Policy {profile_name} already exists")
                 
     else:
         print(f"Failed to create DoS Protection Policy: {response.status_code} - {response.text}")
@@ -119,11 +117,6 @@ def create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zon
     if response.status_code == 200:
         commit_changes(firewall_ip, api_key, force=True)
         print(f"DoS Protection Policy created successfully: {rule_name}")
-        #message = (f"🚨 DoS Detected 🚨\n"
-        #            f"Source IP: {src_ip} \n"
-        #            f"From: {src_zone} to: {dst_zone}")
-        #send_line_notification(message)
-    elif response.status_code == 409:
         if rule_name not in existing_rules:
                 print(f"Policy {rule_name} already exists")
                 existing_rules.add(rule_name)

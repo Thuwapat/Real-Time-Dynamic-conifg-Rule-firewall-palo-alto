@@ -13,12 +13,13 @@ from Get_traffic_logs import get_new_traffic_logs
 # Palo Alto firewall credentials and IP
 firewall_ip = os.environ.get("FIREWALL_IP")
 api_key = os.environ.get("API_KEY_PALO_ALTO")
-POLL_INTERVAL = 1  # Seconds
-UNIQUE_IP_THRESHOLD = 1024  # เกณฑ์เดิม (ยังคงไว้เผื่อใช้)
+
+POLL_INTERVAL = 1 
+UNIQUE_IP_THRESHOLD = 1024  
 ACTIVESESSION_THRESHOLD = 1024
 LOG_SAMPLING_SIZE = 100
-DDOS_IP_THRESHOLD = 2  # เกณฑ์ DDoS จากจำนวน IP ที่เป็น DoS
-DDOS_UNIQUE_IP_THRESHOLD = 50  # เกณฑ์สำรอง: จำนวน IP ไม่ซ้ำกันสูงเกิน 50
+DDOS_IP_THRESHOLD = 2 
+DDOS_UNIQUE_IP_THRESHOLD = 1024
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
@@ -30,6 +31,7 @@ with open('dos_detection_model.pkl', 'rb') as model_file:
 print("-------- Start Real-Time DoS/DDoS Protection with ML --------")
 
 def detection_loop():
+    create_dos_profile(firewall_ip, api_key)
     while True:
         session_data = fetch_info_sessions(firewall_ip, api_key)
         actsession_data = fetch_active_sessions(firewall_ip, api_key)
@@ -67,14 +69,15 @@ def detection_loop():
                         rule_name = f"Block_Slowloris_{src_ip.replace('.', '_')}"
                         if rule_name not in existing_rules:
                             print(f"Creating rule to block Slowloris from {src_ip} ({match_count} matching logs)")
+                            create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
                             existing_rules.add(rule_name)
                 else:
                     print("No Slowloris candidates detected in this batch.")
             else:
                 print("No new traffic logs retrieved.")
             
-            # ตรวจจับ DoS และนับ IP ที่เป็น DoS เพื่อพิจารณา DDoS
-            dos_ips = set()  # เก็บ IP ที่ถูกระบุว่าเป็น DoS
+            # Check DoS and Store DoS IP IF >= 2 this is DDoS
+            dos_ips = set()  
             if predicted_attack == 1 or predicted_attack == 2:
                 print(">>>>>>>> DoS Detected by ML !!!!! <<<<<<<<")
                 for src_ip, count in session_count.items():
@@ -85,10 +88,11 @@ def detection_loop():
                         continue
                     if count >= ACTIVESESSION_THRESHOLD:
                         print(f"DoS detected from {src_ip} with {count} sessions")
+                        create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
                         dos_ips.add(src_ip)
                         existing_rules.add(rule_name)
             
-            # ตรวจจับ DDoS จากจำนวน IP ที่เป็น DoS
+            # Check DDoS 
             if len(dos_ips) >= DDOS_IP_THRESHOLD:
                 print(">>>>>>>>> DDoS Detected: Multiple DoS IPs !!!!!! <<<<<<<<")
                 for src_ip in dos_ips:  # บล็อกโซนของ IP ที่เป็น DoS
@@ -96,16 +100,18 @@ def detection_loop():
                     rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
                     if rule_name not in existing_rules:
                         print(f"Creating rule to block zone {src_zone} to {dst_zone} due to DDoS (Multiple DoS IPs)")
+                        create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)
                         existing_rules.add(rule_name)
             
-            # เกณฑ์สำรอง: ตรวจจับ DDoS จาก unique_ip_count สูงเกิน 50
+            # Check Unique IP 
             elif unique_ip_count >= DDOS_UNIQUE_IP_THRESHOLD:
                 print(">>>>>>>>> DDoS Detected: High Unique IP Count !!!!!! <<<<<<<<")
                 # เลือก IP ตัวอย่างจาก zone_mapping เพื่อบล็อกโซน
-                for src_ip, (src_zone, dst_zone) in list(zone_mapping.items())[:1]:  # บล็อกโซนแรกที่พบ
+                for src_ip, (src_zone, dst_zone) in list(zone_mapping.items())[:1]: 
                     rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
                     if rule_name not in existing_rules:
                         print(f"Creating rule to block zone {src_zone} to {dst_zone} due to high unique IP count ({unique_ip_count})")
+                        create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)
                         existing_rules.add(rule_name)
             
             elif dos_ips:

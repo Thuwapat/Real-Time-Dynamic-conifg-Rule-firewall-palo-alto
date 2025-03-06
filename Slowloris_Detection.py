@@ -24,9 +24,9 @@ def detect_slowloris_from_logs(logs, threshold_matches=5, time_window=1):
         packets_received = int(log.get('pkts_received', 0))
         bytes_sent = int(log.get('bytes_sent', 0))
         bytes_received = int(log.get('bytes_received', 0))
-        receive_time_dt = log.get('receive_time_dt')  # ใช้ datetime object ที่แปลงแล้วจาก Get_traffic_logs.py
+        receive_time_dt = log.get('receive_time_dt')  
         
-        # ตรวจสอบว่ามี receive_time_dt หรือไม่
+        # check receive_time_dt
         if receive_time_dt is None:
             print(f"Skipping log from {source_ip} due to missing or invalid receive_time")
             continue
@@ -34,7 +34,7 @@ def detect_slowloris_from_logs(logs, threshold_matches=5, time_window=1):
         matches_characteristics = (
             log.get('app') == slowloris_characteristics['application'] and
             log.get('repeatcnt') == slowloris_characteristics['repeat-count'] and
-            log.get('session_end_reason') in slowloris_characteristics['session-end-reason'] and  # เปลี่ยนเป็น in
+            log.get('session_end_reason') in slowloris_characteristics['session-end-reason'] and  
             log.get('subcategory_of_app') == slowloris_characteristics['subcategory-of-app'] and
             log.get('category_of_app') == slowloris_characteristics['category-of-app'] and
             log.get('technology_of_app') == slowloris_characteristics['technology-of-app'] and
@@ -59,10 +59,10 @@ def detect_slowloris_from_logs(logs, threshold_matches=5, time_window=1):
         if match_count < threshold_matches:
             continue
         
-        # เรียงลำดับ timestamps (ซึ่งเป็น datetime objects)
+        # sort timestamp
         timestamps.sort()
         
-        # วิเคราะห์ความถี่ในช่วงเวลา time_window (วินาที)
+        # Check Frequency in time window 1 sec
         for i in range(len(timestamps) - threshold_matches + 1):
             window = timestamps[i:i + threshold_matches]
             time_diff = window[-1] - window[0]

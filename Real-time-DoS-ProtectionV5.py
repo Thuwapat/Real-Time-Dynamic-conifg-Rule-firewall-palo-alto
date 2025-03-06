@@ -84,7 +84,7 @@ def detection_loop():
                     src_zone, dst_zone = zone_mapping[src_ip]
                     rule_name = f"Block_IP_{src_ip.replace('.', '_')}"
                     if rule_name in existing_rules:
-                        print(f"Rule {rule_name} already exists..skipping creation")
+                        #print(f"Rule {rule_name} already exists..skipping creation")
                         continue
                     if count >= ACTIVESESSION_THRESHOLD:
                         print(f"DoS detected from {src_ip} with {count} sessions")
@@ -116,7 +116,7 @@ def detection_loop():
             elif dos_ips:
                 print(f"DoS detected from {len(dos_ips)} IP(s), not enough for DDoS (threshold: {DDOS_IP_THRESHOLD})")
             else:
-                print(f"..............No DoS or DDoS detected by ML..............")
+                print(f"..................................")
         
         else:
             print("No session data found.")
@@ -135,7 +135,7 @@ def input_loop():
         user_input = input().strip().lower()
         if user_input == 'q':
             print("Received 'q'. Shutting down...")
-            stop_event.set()  # ส่งสัญญาณให้ threads หยุด
+            stop_event.set()  
             break
 
 detection_thread = threading.Thread(target=detection_loop, name="DetectionThread", daemon=True)

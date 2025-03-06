@@ -9,7 +9,7 @@ import urllib.parse
 firewall_ip = os.environ.get("FIREWALL_IP")
 api_key = os.environ.get("API_KEY_PALO_ALTO")
 
-DEFAULT_INACTIVE_THRESHOLD = 10  
+DEFAULT_INACTIVE_THRESHOLD = 30  
 SLOWLORIS_INACTIVE_THRESHOLD = 60  
 
 def get_rule_last_hit_payload(rule_name):

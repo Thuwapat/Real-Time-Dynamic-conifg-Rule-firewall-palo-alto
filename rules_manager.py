@@ -9,9 +9,8 @@ import urllib.parse
 firewall_ip = os.environ.get("FIREWALL_IP")
 api_key = os.environ.get("API_KEY_PALO_ALTO")
 
-# กำหนดค่า Inactive Threshold
-DEFAULT_INACTIVE_THRESHOLD = 10  # วินาที สำหรับ DoS/DDoS
-SLOWLORIS_INACTIVE_THRESHOLD = 60  # วินาที สำหรับ Slowloris (มากกว่า Keep-Alive 30 วินาที)
+DEFAULT_INACTIVE_THRESHOLD = 10  
+SLOWLORIS_INACTIVE_THRESHOLD = 60  
 
 def get_rule_last_hit_payload(rule_name):
     xml_cmd = f"""
@@ -95,6 +94,6 @@ def check_and_remove_rule(rule_name, existing_rules):
             except ValueError:
                 print(f"Invalid last-hit-timestamp for rule {rule_name}: {ts_elem.text}")
         else:
-            print(f"Could not find last-hit-timestamp for rule {rule_name}.")
+            print(f"Could not find last-hit-timestamp for rule {rule_name}. Please wait.. Rules is pending.....")
     else:
         print(f"Error retrieving data for rule {rule_name}: {result}")

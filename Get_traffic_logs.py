@@ -64,7 +64,7 @@ def get_new_traffic_logs(api_key, log_type="traffic", max_logs=100):
         'nlogs': max_logs * 2
     }
 
-    print(f"Fetching logs at {datetime.now()}")  # เพิ่ม print ตามที่เคยพูดถึง
+    #print(f"Fetching logs at {datetime.now()}") 
     response = requests.post(url, headers=headers, data=payload, verify=False)
 
     if response.status_code == 200:
@@ -98,7 +98,7 @@ def get_new_traffic_logs(api_key, log_type="traffic", max_logs=100):
 
                 if new_logs:
                     last_receive_time = max(log['receive_time_dt'] for log in new_logs)
-                    print(f"Retrieved {len(new_logs)} new logs. Latest receive_time: {last_receive_time}")
+                    #print(f"Retrieved {len(new_logs)} new logs. Latest receive_time: {last_receive_time}")
                 else:
                     print("No new logs found after filtering.")
                 return new_logs

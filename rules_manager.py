@@ -8,8 +8,8 @@ from rules_config_funct import commit_changes
 firewall_ip = os.environ.get("FIREWALL_IP")
 api_key = os.environ.get("API_KEY_PALO_ALTO")
 
-DEFAULT_INACTIVE_THRESHOLD = 120  
-SLOWLORIS_INACTIVE_THRESHOLD = 120
+DEFAULT_INACTIVE_THRESHOLD = 300  
+SLOWLORIS_INACTIVE_THRESHOLD = 300
 CHECK_DELAY = 10  # รอ 10 วินาทีก่อนเริ่มตรวจสอบ last hit time
 GRACE_PERIOD = 120
 

@@ -124,7 +124,7 @@ def create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zon
         print(f"Failed to create DoS Protection Policy: {response.status_code} - {response.text}")
 
 # Commit the changes to the Palo Alto firewall with force option.
-def commit_changes(firewall_ip, api_key, force=False):
+def commit_changes(firewall_ip, api_key, force=True):
     url = f"https://{firewall_ip}/api/"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 

@@ -22,7 +22,12 @@ def detect_slowloris_from_logs(logs, threshold_matches=5, time_window=1):
         source_ip = log.get('src')
         packets_sent = int(log.get('pkts_sent', 0))
         packets_received = int(log.get('pkts_received', 0))
-        log_time_str = log.get('receive_time')  # Use receive_time for debug
+        receive_time_dt = log.get('receive_time_dt')  # ใช้ datetime object ที่แปลงแล้วจาก Get_traffic_logs.py
+        
+        # ตรวจสอบว่ามี receive_time_dt หรือไม่
+        if receive_time_dt is None:
+            print(f"Skipping log from {source_ip} due to missing or invalid receive_time")
+            continue
         
         matches_characteristics = (
             log.get('app') == slowloris_characteristics['application'] and
@@ -39,19 +44,27 @@ def detect_slowloris_from_logs(logs, threshold_matches=5, time_window=1):
         )
         
         if matches_characteristics:
-            source_ip_matches[source_ip].append(log)
-            print(f"Matched log from {source_ip}: {log_time_str}, packets: {packets_sent}/{packets_received}")
+            source_ip_matches[source_ip].append(receive_time_dt)
+            print(f"Matched log from {source_ip}: {receive_time_dt}, packets: {packets_sent}/{packets_received}")
     
     slowloris_candidates = {}
     for src_ip, timestamps in source_ip_matches.items():
-        if len(timestamps) < threshold_matches:
+        match_count = len(timestamps)
+        print(f"Source IP {src_ip} has {match_count} matching logs")
+        
+        if match_count < threshold_matches:
             continue
+        
+        # เรียงลำดับ timestamps (ซึ่งเป็น datetime objects)
         timestamps.sort()
+        
+        # วิเคราะห์ความถี่ในช่วงเวลา time_window (วินาที)
         for i in range(len(timestamps) - threshold_matches + 1):
             window = timestamps[i:i + threshold_matches]
-            if window[-1] - window[0] <= timedelta(seconds=time_window):
-                slowloris_candidates[src_ip] = len(timestamps)
-                print(f"Slowloris detected from {src_ip}: {len(timestamps)} logs in {time_window} sec")
+            time_diff = window[-1] - window[0]
+            if time_diff <= timedelta(seconds=time_window):
+                slowloris_candidates[src_ip] = match_count
+                print(f"Slowloris detected from {src_ip}: {match_count} logs in {time_diff.total_seconds():.2f} sec")
                 break
     
     return slowloris_candidates

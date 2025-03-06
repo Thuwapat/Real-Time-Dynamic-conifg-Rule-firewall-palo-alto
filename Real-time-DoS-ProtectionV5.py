@@ -124,7 +124,7 @@ def detection_loop():
 
 def rule_check_loop():
     while True:
-        print("------ Checking rules ------")
+        print("..............Checking rules..............")
         for rule in list(existing_rules):
             check_and_remove_rule(rule, existing_rules)
         time.sleep(5)

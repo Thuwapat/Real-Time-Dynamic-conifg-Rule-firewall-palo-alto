@@ -77,7 +77,6 @@ def check_and_remove_rule(rule_name, existing_rules):
                 current_time = int(time.time())
                 time_difference = current_time - last_hit
 
-                # กำหนด threshold ตามประเภทของ Rule
                 if "Block_Slowloris" in rule_name:
                     inactive_threshold = SLOWLORIS_INACTIVE_THRESHOLD
                     rule_type = "Slowloris"
@@ -96,4 +95,4 @@ def check_and_remove_rule(rule_name, existing_rules):
         else:
             print(f"Could not find last-hit-timestamp for rule {rule_name}. Please wait.. Rules is pending.....")
     else:
-        print(f"Error retrieving data for rule {rule_name}: {result}")
+        print(f"Please wait.. Rules is Creating.... ")

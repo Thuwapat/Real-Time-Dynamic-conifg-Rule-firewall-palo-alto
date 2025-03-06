@@ -1,4 +1,3 @@
-# rules_manager.py
 import os
 import time
 import requests
@@ -9,6 +8,10 @@ import urllib.parse
 # ดึงค่า firewall_ip และ api_key จาก environment variable
 firewall_ip = os.environ.get("FIREWALL_IP")
 api_key = os.environ.get("API_KEY_PALO_ALTO")
+
+# กำหนดค่า Inactive Threshold
+DEFAULT_INACTIVE_THRESHOLD = 10  # วินาที สำหรับ DoS/DDoS
+SLOWLORIS_INACTIVE_THRESHOLD = 60  # วินาที สำหรับ Slowloris (มากกว่า Keep-Alive 30 วินาที)
 
 def get_rule_last_hit_payload(rule_name):
     xml_cmd = f"""
@@ -54,7 +57,6 @@ def get_rule_last_hit_payload(rule_name):
     else:
         return f"HTTP Error: {response.status_code}"
 
-
 def delete_rule(rule_name):
     url = f"https://{firewall_ip}/restapi/v10.2/Policies/DoSRules?location=vsys&vsys=vsys1&name={rule_name}"
     headers = {'X-PAN-KEY': api_key, 'Content-Type': 'application/json'}
@@ -66,27 +68,33 @@ def delete_rule(rule_name):
         print(f"Failed to delete DoS Rule '{rule_name}': {response.status_code} - {response.text}")
 
 def check_and_remove_rule(rule_name, existing_rules):
-    
     result = get_rule_last_hit_payload(rule_name)
 
     if isinstance(result, ET.Element):
-        ts_elem = result.find(".//rules/entry/last-hit-timestamp") 
+        ts_elem = result.find(".//rules/entry/last-hit-timestamp")
         if ts_elem is not None and ts_elem.text is not None:
             try:
-                last_hit = int(ts_elem.text.strip()) 
+                last_hit = int(ts_elem.text.strip())
                 current_time = int(time.time())
                 time_difference = current_time - last_hit
 
-                if last_hit == 0 or time_difference > 10:
-                    print(f"Rule {rule_name} is inactive for over 10 seconds (last hit: {last_hit}). Deleting rule.")
-                    delete_rule(rule_name)
-                    existing_rules.discard(rule_name)  
+                # กำหนด threshold ตามประเภทของ Rule
+                if "Block_Slowloris" in rule_name:
+                    inactive_threshold = SLOWLORIS_INACTIVE_THRESHOLD
+                    rule_type = "Slowloris"
                 else:
-                    print(f"Rule {rule_name} is active. Last hit time: {last_hit} (current time: {current_time}).")
+                    inactive_threshold = DEFAULT_INACTIVE_THRESHOLD
+                    rule_type = "DoS/DDoS"
+
+                if last_hit == 0 or time_difference > inactive_threshold:
+                    print(f"Rule {rule_name} ({rule_type}) is inactive for over {inactive_threshold} seconds (last hit: {last_hit}). Deleting rule.")
+                    delete_rule(rule_name)
+                    existing_rules.discard(rule_name)
+                else:
+                    print(f"Rule {rule_name} ({rule_type}) is active. Last hit time: {last_hit} (current time: {current_time}, diff: {time_difference} sec).")
             except ValueError:
                 print(f"Invalid last-hit-timestamp for rule {rule_name}: {ts_elem.text}")
         else:
             print(f"Could not find last-hit-timestamp for rule {rule_name}.")
     else:
         print(f"Error retrieving data for rule {rule_name}: {result}")
-

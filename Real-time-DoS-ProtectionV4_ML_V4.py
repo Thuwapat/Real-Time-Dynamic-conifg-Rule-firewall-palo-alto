@@ -53,10 +53,10 @@ def detection_loop():
             }
             
             feature_vector = pd.DataFrame([features])
-            print(feature_vector)
+            #print(feature_vector)
             predicted_attack = ml_model.predict(feature_vector)[0]
-            print(f"Predicted Attack Type: {predicted_attack}")
-            print(f"Existing rules: {existing_rules}")
+            #print(f"Predicted Attack Type: {predicted_attack}")
+            #print(f"Existing rules: {existing_rules}")
             
             # ตรวจจับ Slowloris
             if traffic_logs:

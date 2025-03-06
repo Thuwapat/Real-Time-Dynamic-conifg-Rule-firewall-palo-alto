@@ -79,7 +79,6 @@ def detect_slowloris_from_logs(logs, threshold_matches=5, time_window=1):
                     'src_zone': src_zone,
                     'dst_zone': dst_zone
                 }
-                print(f"Slowloris detected from {src_ip}: {match_count} logs in {time_diff.total_seconds():.2f} sec, from: {src_zone}, to: {dst_zone}")
                 break
     
     return slowloris_candidates

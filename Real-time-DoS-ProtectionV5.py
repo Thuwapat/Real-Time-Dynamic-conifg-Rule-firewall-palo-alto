@@ -53,10 +53,7 @@ def detection_loop():
             }
             
             feature_vector = pd.DataFrame([features])
-            #print(feature_vector)
             predicted_attack = ml_model.predict(feature_vector)[0]
-            #print(f"Predicted Attack Type: {predicted_attack}")
-            #print(f"Existing rules: {existing_rules}")
             
             # ตรวจจับ Slowloris
             if traffic_logs:
@@ -72,9 +69,15 @@ def detection_loop():
                             if src_zone and dst_zone: 
                                 print(f"Creating rule to block Slowloris from {src_ip} ({match_count} matching logs)")
                                 create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
-                                existing_rules.add(rule_name)
-                else:
-                    print("No Slowloris candidates detected in this batch.")
+                                # ตรวจสอบ creation time และล้าง session
+                                result = get_rule_last_hit_payload(rule_name)
+                                creation_elem = result.find(".//rules/entry/rule-creation-timestamp")
+                                if creation_elem is not None and creation_elem.text is not None:
+                                    print(f"Rule {rule_name} created with creation time {creation_elem.text}")
+                                    clear_sessions(firewall_ip, api_key, src_ip)  # ล้าง session เดิม
+                                    existing_rules.add(rule_name)
+                                else:
+                                    print(f"Rule {rule_name} created but no creation time yet, skipping session clear.")
             
             # Check DoS and Store DoS IP IF >= 2 this is DDoS
             dos_ips = set()  
@@ -83,14 +86,20 @@ def detection_loop():
                 for src_ip, count in session_count.items():
                     src_zone, dst_zone = zone_mapping[src_ip]
                     rule_name = f"Block_IP_{src_ip.replace('.', '_')}"
-                    if rule_name in existing_rules:
-                        #print(f"Rule {rule_name} already exists..skipping creation")
-                        continue
-                    if count >= ACTIVESESSION_THRESHOLD:
-                        print(f"DoS detected from {src_ip} with {count} sessions")
-                        create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
-                        dos_ips.add(src_ip)
-                        existing_rules.add(rule_name)
+                    if rule_name not in existing_rules:
+                        if count >= ACTIVESESSION_THRESHOLD:
+                            print(f"DoS detected from {src_ip} with {count} sessions")
+                            create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules)
+                            # ตรวจสอบ creation time และล้าง session
+                            result = get_rule_last_hit_payload(rule_name)
+                            creation_elem = result.find(".//rules/entry/rule-creation-timestamp")
+                            if creation_elem is not None and creation_elem.text is not None:
+                                print(f"Rule {rule_name} created with creation time {creation_elem.text}")
+                                clear_sessions(firewall_ip, api_key, src_ip)  # ล้าง session เดิม
+                                existing_rules.add(rule_name)
+                            else:
+                                print(f"Rule {rule_name} created but no creation time yet, skipping session clear.")
+                            dos_ips.add(src_ip)
             
             # Check DDoS 
             if len(dos_ips) >= DDOS_IP_THRESHOLD:

@@ -84,4 +84,33 @@ def parse_info_sessions(session_data):
         pps = int(session.find('pps').text)
     return cps, kbps, num_active, num_icmp, num_tcp, num_udp, pps
 
-
+def clear_sessions(firewall_ip, api_key, src_ip):
+    xml_cmd = f"""
+    <clear>
+      <session>
+        <all>
+          <filter>
+            <source>{src_ip}</source>
+          </filter>
+        </all>
+      </session>
+    </clear>
+    """.strip()
+    
+    url = f"https://{firewall_ip}/api/"
+    payload = {
+        'type': 'op',
+        'key': api_key,
+        'cmd': xml_cmd
+    }
+    try:
+        response = requests.post(url, data=payload, verify=False, timeout=10)
+        if response.status_code == 200:
+            print(f"Cleared sessions for {src_ip}")
+            return True
+        else:
+            print(f"Failed to clear sessions for {src_ip}: {response.status_code} - {response.text}")
+            return False
+    except Exception as e:
+        print(f"Error clearing sessions for {src_ip}: {e}")
+        return False

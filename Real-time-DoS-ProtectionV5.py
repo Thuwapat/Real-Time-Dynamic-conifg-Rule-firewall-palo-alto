@@ -21,6 +21,8 @@ ACTIVESESSION_THRESHOLD = 1024
 LOG_SAMPLING_SIZE = 100
 DDOS_IP_THRESHOLD = 2 
 DDOS_UNIQUE_IP_THRESHOLD = 1024
+last_zone_rule_time = {}  
+ZONE_RULE_COOLDOWN = 60  
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 stop_event = threading.Event()
@@ -87,23 +89,30 @@ def detection_loop():
                     dos_ips.add(src_ip)
             
             # Check DDoS 
+            current_time = time.time()
             if len(dos_ips) >= DDOS_IP_THRESHOLD:
                 print(">>>>>>>>> DDoS Detected: Multiple DoS IPs !!!!!! <<<<<<<<")
                 for src_ip in dos_ips: 
                     src_zone, dst_zone = zone_mapping[src_ip]
                     rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
-                    if rule_name not in existing_rules:
+                    zone_key = f"{src_zone}_to_{dst_zone}"
+                    last_time = last_zone_rule_time.get(zone_key, 0)
+                    if rule_name not in existing_rules and (current_time - last_time >= ZONE_RULE_COOLDOWN):
                         print(f"Preparing rule to block zone {src_zone} to {dst_zone} due to DDoS (Multiple DoS IPs)")
                         rules_to_create.append(("any", src_zone, dst_zone, rule_name))
+                        last_zone_rule_time[zone_key] = current_time
             
             # Check Unique IP 
             elif unique_ip_count >= DDOS_UNIQUE_IP_THRESHOLD:
                 print(">>>>>>>>> DDoS Detected: High Unique IP Count !!!!!! <<<<<<<<")
                 for src_ip, (src_zone, dst_zone) in list(zone_mapping.items())[:1]: 
                     rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
-                    if rule_name not in existing_rules:
+                    zone_key = f"{src_zone}_to_{dst_zone}"
+                    last_time = last_zone_rule_time.get(zone_key, 0)
+                    if rule_name not in existing_rules and (current_time - last_time >= ZONE_RULE_COOLDOWN):
                         print(f"Preparing rule to block zone {src_zone} to {dst_zone} due to high unique IP count ({unique_ip_count})")
                         rules_to_create.append(("any", src_zone, dst_zone, rule_name))
+                        last_zone_rule_time[zone_key] = current_time
             
             # Create new Rules
             for src_ip, src_zone, dst_zone, rule_name in rules_to_create:

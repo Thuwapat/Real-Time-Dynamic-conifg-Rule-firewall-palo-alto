@@ -59,6 +59,7 @@ def detection_loop():
 
             rules_to_create = []  # Store Rules that have to create
             ips_to_clear = set()  # Store IP to be cleared
+            is_high_unique_ip_ddos = False  # ตัวแปรเพื่อระบุ DDoS จาก unique IP
             
             # ตรวจจับ Slowloris
             if traffic_logs:
@@ -105,6 +106,7 @@ def detection_loop():
             # Check Unique IP 
             elif unique_ip_count >= DDOS_UNIQUE_IP_THRESHOLD:
                 print(">>>>>>>>> DDoS Detected: High Unique IP Count !!!!!! <<<<<<<<")
+                is_high_unique_ip_ddos = True  # ตั้งค่าสถานะเมื่อเป็น DDoS จาก unique IP
                 for src_ip, (src_zone, dst_zone) in list(zone_mapping.items())[:1]: 
                     rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
                     zone_key = f"{src_zone}_to_{dst_zone}"
@@ -118,8 +120,8 @@ def detection_loop():
             for src_ip, src_zone, dst_zone, rule_name in rules_to_create:
                 create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules, commit=False)
 
-            # Commit and Clear Session if have new rules or SUS IP
-            if rules_to_create or ips_to_clear:
+            # Commit and Clear Session if have new rules or SUS IP (ข้ามถ้าเป็น High Unique IP DDoS)
+            if rules_to_create or (ips_to_clear and not is_high_unique_ip_ddos):
                 if rules_to_create:
                     commit_changes(firewall_ip, api_key)  
                     all_rules_ready = True
@@ -143,8 +145,8 @@ def detection_loop():
                             print(f"Rule {rule_name} created but no valid creation time found. creation_elem: {creation_elem}")
                             all_rules_ready = False
                 
-                # Clear Session in ips_to_clear
-                if ips_to_clear:
+                # Clear Session in ips_to_clear (เฉพาะเมื่อไม่ใช่ High Unique IP DDoS)
+                if ips_to_clear and not is_high_unique_ip_ddos:
                     if (rules_to_create and all_rules_ready) or not rules_to_create:
                         for src_ip in ips_to_clear:
                             clear_sessions(firewall_ip, api_key, src_ip)

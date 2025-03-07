@@ -71,7 +71,8 @@ def detection_loop():
                         if rule_name not in existing_rules and src_zone and dst_zone:
                             print(f"Preparing rule to block Slowloris from {src_ip} ({match_count} matching logs)")
                             rules_to_create.append((src_ip, src_zone, dst_zone, rule_name))
-                            ips_to_clear.add(src_ip)
+                        # เพิ่ม src_ip เข้า ips_to_clear แม้ว่าจะมี Rule อยู่แล้ว
+                        ips_to_clear.add(src_ip)
             
             # Check DoS and Store DoS IP IF >= 2 this is DDoS
             dos_ips = set()
@@ -83,41 +84,47 @@ def detection_loop():
                     if rule_name not in existing_rules and count >= ACTIVESESSION_THRESHOLD:
                         print(f"Preparing rule to block DoS from {src_ip} with {count} sessions")
                         rules_to_create.append((src_ip, src_zone, dst_zone, rule_name))
-                        ips_to_clear.add(src_ip)
-                        dos_ips.add(src_ip)
+                    # เพิ่ม src_ip เข้า ips_to_clear แม้ว่าจะมี Rule อยู่แล้ว
+                    ips_to_clear.add(src_ip)
+                    dos_ips.add(src_ip)
             
+            # สร้าง Rule ใหม่
             for src_ip, src_zone, dst_zone, rule_name in rules_to_create:
                 create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules, commit=False)
 
-            if rules_to_create:
-                commit_changes(firewall_ip, api_key)  # Commit ครั้งเดียว
-                all_rules_ready = True
-                for src_ip, src_zone, dst_zone, rule_name in rules_to_create:
-                    result = get_rule_last_hit_payload(rule_name)
-                    if not isinstance(result, ET.Element):
-                        print(f"Error: get_rule_last_hit_payload returned invalid result for {rule_name}: {result}")
-                        all_rules_ready = False
-                        continue
-                    
-                    creation_elem = result.find(".//rules/entry/rule-creation-timestamp")
-                    if creation_elem is not None and hasattr(creation_elem, 'text') and creation_elem.text is not None:
-                        try:
-                            creation_time = int(creation_elem.text.strip())
-                            print(f"Rule {rule_name} created with creation time {creation_time}")
-                            existing_rules.add(rule_name)
-                        except ValueError:
-                            print(f"Error: Invalid creation time format for {rule_name}: {creation_elem.text}")
+            # Commit และล้าง session ถ้ามี Rule ใหม่หรือ IP ที่ต้องล้าง
+            if rules_to_create or ips_to_clear:
+                if rules_to_create:
+                    commit_changes(firewall_ip, api_key)  # Commit ครั้งเดียว
+                    all_rules_ready = True
+                    for src_ip, src_zone, dst_zone, rule_name in rules_to_create:
+                        result = get_rule_last_hit_payload(rule_name)
+                        if not isinstance(result, ET.Element):
+                            print(f"Error: get_rule_last_hit_payload returned invalid result for {rule_name}: {result}")
                             all_rules_ready = False
-                    else:
-                        print(f"Rule {rule_name} created but no valid creation time found. creation_elem: {creation_elem}")
-                        all_rules_ready = False
+                            continue
+                        
+                        creation_elem = result.find(".//rules/entry/rule-creation-timestamp")
+                        if creation_elem is not None and hasattr(creation_elem, 'text') and creation_elem.text is not None:
+                            try:
+                                creation_time = int(creation_elem.text.strip())
+                                print(f"Rule {rule_name} created with creation time {creation_time}")
+                                existing_rules.add(rule_name)
+                            except ValueError:
+                                print(f"Error: Invalid creation time format for {rule_name}: {creation_elem.text}")
+                                all_rules_ready = False
+                        else:
+                            print(f"Rule {rule_name} created but no valid creation time found. creation_elem: {creation_elem}")
+                            all_rules_ready = False
                 
-                if all_rules_ready:
-                    for src_ip in ips_to_clear:
-                        clear_sessions(firewall_ip, api_key, src_ip)  # ล้าง session ทันทีเมื่อ Rule ทุกตัวพร้อม
-                    print("All rules are ready, sessions cleared.")
-                else:
-                    print("Some rules are not ready, skipping session clear.")
+                # ล้าง session ถ้ามี IP ใน ips_to_clear
+                if ips_to_clear:
+                    if (rules_to_create and all_rules_ready) or not rules_to_create:
+                        for src_ip in ips_to_clear:
+                            clear_sessions(firewall_ip, api_key, src_ip)  # ล้าง session ทันที
+                        print("Sessions cleared for detected IPs.")
+                    else:
+                        print("Some new rules are not ready, skipping session clear.")
 
             # Check DDoS 
             if len(dos_ips) >= DDOS_IP_THRESHOLD:

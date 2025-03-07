@@ -55,8 +55,8 @@ def detection_loop():
             feature_vector = pd.DataFrame([features])
             predicted_attack = ml_model.predict(feature_vector)[0]
 
-            rules_to_create = []  # รวบรวม Rule ที่จะสร้าง
-            ips_to_clear = set()  # รวบรวม IP ที่ต้องล้าง session
+            rules_to_create = []  # Store Rules that have to create
+            ips_to_clear = set()  # Store IP to be cleared
             
             # ตรวจจับ Slowloris
             if traffic_logs:
@@ -88,14 +88,14 @@ def detection_loop():
                     ips_to_clear.add(src_ip)
                     dos_ips.add(src_ip)
             
-            # สร้าง Rule ใหม่
+            # Create new Rules
             for src_ip, src_zone, dst_zone, rule_name in rules_to_create:
                 create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules, commit=False)
 
-            # Commit และล้าง session ถ้ามี Rule ใหม่หรือ IP ที่ต้องล้าง
+            # Commit Clear Session if have new rules or SUS IP
             if rules_to_create or ips_to_clear:
                 if rules_to_create:
-                    commit_changes(firewall_ip, api_key)  # Commit ครั้งเดียว
+                    commit_changes(firewall_ip, api_key)  
                     all_rules_ready = True
                     for src_ip, src_zone, dst_zone, rule_name in rules_to_create:
                         result = get_rule_last_hit_payload(rule_name)
@@ -117,7 +117,7 @@ def detection_loop():
                             print(f"Rule {rule_name} created but no valid creation time found. creation_elem: {creation_elem}")
                             all_rules_ready = False
                 
-                # ล้าง session ถ้ามี IP ใน ips_to_clear
+                # Clear Session in ips_to_clear
                 if ips_to_clear:
                     if (rules_to_create and all_rules_ready) or not rules_to_create:
                         for src_ip in ips_to_clear:

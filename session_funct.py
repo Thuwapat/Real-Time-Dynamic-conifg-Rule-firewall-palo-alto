@@ -114,6 +114,6 @@ def clear_sessions(firewall_ip, api_key, src_ip):
                 print(f"Failed to clear sessions for {src_ip}: {response.status_code} - {response.text}")
         except Exception as e:
             print(f"Error clearing sessions for {src_ip}: {e}")
-        time.sleep(2)  # รอ 2 วินาทีก่อนลองใหม่
+        time.sleep(2) 
     print(f"Failed to clear sessions for {src_ip} after 3 attempts.")
     return False

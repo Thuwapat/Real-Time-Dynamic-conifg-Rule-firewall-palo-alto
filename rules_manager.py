@@ -11,7 +11,7 @@ api_key = os.environ.get("API_KEY_PALO_ALTO")
 
 DEFAULT_INACTIVE_THRESHOLD = 120  
 SLOWLORIS_INACTIVE_THRESHOLD = 120
-CHECK_DELAY = 10  # รอ 10 วินาทีก่อนเริ่มตรวจสอบ last hit time
+CHECK_DELAY = 10  
 GRACE_PERIOD = 60
 
 def get_rule_last_hit_payload(rule_name):
@@ -94,8 +94,8 @@ def check_and_remove_rule(rule_name, existing_rules):
         inactive_threshold = DEFAULT_INACTIVE_THRESHOLD
         rule_type = "DoS/DDoS"
 
-    print(f"Debug: Rule {rule_name}, creation_time={creation_time}, last_hit={last_hit}, current_time={current_time}, "
-          f"time_since_creation={time_since_creation}, time_difference={time_difference}")
+    #print(f"Debug: Rule {rule_name}, creation_time={creation_time}, last_hit={last_hit}, current_time={current_time}, "
+    #      f"time_since_creation={time_since_creation}, time_difference={time_difference}")
 
     if last_hit == 0 and time_since_creation > inactive_threshold + GRACE_PERIOD:
         print(f"Rule {rule_name} ({rule_type}) has never been hit and is past threshold ({time_since_creation} sec since creation). Deleting rule.")

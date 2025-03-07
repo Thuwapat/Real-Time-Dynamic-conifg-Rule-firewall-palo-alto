@@ -108,7 +108,7 @@ def clear_sessions(firewall_ip, api_key, src_ip):
         try:
             response = requests.post(url, data=payload, verify=False, timeout=10)
             if response.status_code == 200:
-                print(f"Cleared sessions for {src_ip}")
+                #print(f"Cleared sessions for {src_ip}")
                 return True
             else:
                 print(f"Failed to clear sessions for {src_ip}: {response.status_code} - {response.text}")

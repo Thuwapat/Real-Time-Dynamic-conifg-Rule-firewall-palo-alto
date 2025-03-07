@@ -71,10 +71,9 @@ def detection_loop():
                         if rule_name not in existing_rules and src_zone and dst_zone:
                             print(f"Preparing rule to block Slowloris from {src_ip} ({match_count} matching logs)")
                             rules_to_create.append((src_ip, src_zone, dst_zone, rule_name))
-                        # เพิ่ม src_ip เข้า ips_to_clear แม้ว่าจะมี Rule อยู่แล้ว
                         ips_to_clear.add(src_ip)
             
-            # Check DoS and Store DoS IP IF >= 2 this is DDoS
+            # Check DoS and Store DoS IP
             dos_ips = set()
             if predicted_attack == 1 or predicted_attack == 2:
                 print(">>>>>>>> DoS Detected by ML !!!!! <<<<<<<<")
@@ -84,15 +83,33 @@ def detection_loop():
                     if rule_name not in existing_rules and count >= ACTIVESESSION_THRESHOLD:
                         print(f"Preparing rule to block DoS from {src_ip} with {count} sessions")
                         rules_to_create.append((src_ip, src_zone, dst_zone, rule_name))
-                    # เพิ่ม src_ip เข้า ips_to_clear แม้ว่าจะมี Rule อยู่แล้ว
                     ips_to_clear.add(src_ip)
                     dos_ips.add(src_ip)
+            
+            # Check DDoS 
+            if len(dos_ips) >= DDOS_IP_THRESHOLD:
+                print(">>>>>>>>> DDoS Detected: Multiple DoS IPs !!!!!! <<<<<<<<")
+                for src_ip in dos_ips: 
+                    src_zone, dst_zone = zone_mapping[src_ip]
+                    rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
+                    if rule_name not in existing_rules:
+                        print(f"Preparing rule to block zone {src_zone} to {dst_zone} due to DDoS (Multiple DoS IPs)")
+                        rules_to_create.append(("any", src_zone, dst_zone, rule_name))
+            
+            # Check Unique IP 
+            elif unique_ip_count >= DDOS_UNIQUE_IP_THRESHOLD:
+                print(">>>>>>>>> DDoS Detected: High Unique IP Count !!!!!! <<<<<<<<")
+                for src_ip, (src_zone, dst_zone) in list(zone_mapping.items())[:1]: 
+                    rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
+                    if rule_name not in existing_rules:
+                        print(f"Preparing rule to block zone {src_zone} to {dst_zone} due to high unique IP count ({unique_ip_count})")
+                        rules_to_create.append(("any", src_zone, dst_zone, rule_name))
             
             # Create new Rules
             for src_ip, src_zone, dst_zone, rule_name in rules_to_create:
                 create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules, commit=False)
 
-            # Commit Clear Session if have new rules or SUS IP
+            # Commit and Clear Session if have new rules or SUS IP
             if rules_to_create or ips_to_clear:
                 if rules_to_create:
                     commit_changes(firewall_ip, api_key)  
@@ -121,33 +138,12 @@ def detection_loop():
                 if ips_to_clear:
                     if (rules_to_create and all_rules_ready) or not rules_to_create:
                         for src_ip in ips_to_clear:
-                            clear_sessions(firewall_ip, api_key, src_ip)  # ล้าง session ทันที
+                            clear_sessions(firewall_ip, api_key, src_ip)
                         print("Sessions cleared for detected IPs.")
                     else:
                         print("Some new rules are not ready, skipping session clear.")
-
-            # Check DDoS 
-            if len(dos_ips) >= DDOS_IP_THRESHOLD:
-                print(">>>>>>>>> DDoS Detected: Multiple DoS IPs !!!!!! <<<<<<<<")
-                for src_ip in dos_ips: 
-                    src_zone, dst_zone = zone_mapping[src_ip]
-                    rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
-                    if rule_name not in existing_rules:
-                        print(f"Creating rule to block zone {src_zone} to {dst_zone} due to DDoS (Multiple DoS IPs)")
-                        create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)
-                        existing_rules.add(rule_name)
             
-            # Check Unique IP 
-            elif unique_ip_count >= DDOS_UNIQUE_IP_THRESHOLD:
-                print(">>>>>>>>> DDoS Detected: High Unique IP Count !!!!!! <<<<<<<<")
-                for src_ip, (src_zone, dst_zone) in list(zone_mapping.items())[:1]: 
-                    rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
-                    if rule_name not in existing_rules:
-                        print(f"Creating rule to block zone {src_zone} to {dst_zone} due to high unique IP count ({unique_ip_count})")
-                        create_dos_protection_policy(firewall_ip, api_key, "any", src_zone, dst_zone, rule_name, existing_rules)
-                        existing_rules.add(rule_name)
-            
-            elif dos_ips:
+            if dos_ips and len(dos_ips) < DDOS_IP_THRESHOLD:
                 print(f"DoS detected from {len(dos_ips)} IP(s), not enough for DDoS (threshold: {DDOS_IP_THRESHOLD})")
             else:
                 print(f"..................................")

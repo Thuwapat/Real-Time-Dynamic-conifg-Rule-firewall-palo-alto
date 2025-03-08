@@ -1,5 +1,5 @@
 import requests
-import xml.etree.ElementTree as ET
+
 # Function to create a DoS profile using REST API
 def create_dos_profile(firewall_ip, api_key):
     profile_name = "default-profile"

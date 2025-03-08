@@ -3,9 +3,7 @@ import time
 import requests
 import xml.etree.ElementTree as ET
 from rules_config_funct import commit_changes
-from session_funct import clear_sessions
 
-# ดึงค่า firewall_ip และ api_key จาก environment variable
 firewall_ip = os.environ.get("FIREWALL_IP")
 api_key = os.environ.get("API_KEY_PALO_ALTO")
 

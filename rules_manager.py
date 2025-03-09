@@ -105,3 +105,10 @@ def check_and_remove_rule(rule_name, existing_rules):
         existing_rules.remove(rule_name)
     else:
         print(f"Rule {rule_name} ({rule_type}) is active. Last hit time: {last_hit} (current time: {current_time}, diff: {time_difference} sec).")
+
+def sync_existing_rules():
+    url = f"https://{firewall_ip}/restapi/v10.2/Policies/DoSRules?location=vsys&vsys=vsys1"
+    response = requests.get(url, headers={'X-PAN-KEY': api_key}, verify=False)
+    if response.status_code == 200:
+        return {rule['@name'] for rule in response.json().get('entry', [])}
+    return set()

@@ -120,7 +120,7 @@ def detection_loop():
             for src_ip, src_zone, dst_zone, rule_name in rules_to_create:
                 create_dos_protection_policy(firewall_ip, api_key, src_ip, src_zone, dst_zone, rule_name, existing_rules, commit=False)
 
-            # Commit and Clear Session if have new rules or SUS IP (ข้ามถ้าเป็น High Unique IP DDoS)
+            # Commit and Clear Session if have new rules or SUS IP 
             if rules_to_create or (ips_to_clear and not is_high_unique_ip_ddos):
                 if rules_to_create:
                     commit_changes(firewall_ip, api_key)  
@@ -145,7 +145,7 @@ def detection_loop():
                             print(f"Rule {rule_name} created but no valid creation time found. creation_elem: {creation_elem}")
                             all_rules_ready = False
                 
-                # Clear Session in ips_to_clear (เฉพาะเมื่อไม่ใช่ High Unique IP DDoS)
+                # Clear Session in ips_to_clear 
                 if ips_to_clear and not is_high_unique_ip_ddos:
                     if (rules_to_create and all_rules_ready) or not rules_to_create:
                         for src_ip in ips_to_clear:

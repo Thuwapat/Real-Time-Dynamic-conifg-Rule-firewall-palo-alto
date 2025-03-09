@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import timedelta
 
-def detect_slowloris_from_logs(logs, threshold_matches=50, time_window=1):
+def detect_slowloris_from_logs(logs, threshold_matches=30, time_window=1):
     source_ip_matches = defaultdict(list)
     
     slowloris_characteristics = {

@@ -2,7 +2,6 @@ import requests
 import json
 import os 
 
-# กำหนด Microsoft Teams Webhook URL (เปลี่ยนให้เป็น URL ของคุณเอง)
 teams_webhook_url = os.environ.get("WEBHOOK_URL")
 teams_Detect_DOS_URL = os.environ.get("WEBHOOK_DDOS_URL")
 

@@ -6,7 +6,6 @@ import pandas as pd
 import requests
 import sys
 from session_funct import *
-from rules_config_funct import *
 from rules_manager import *
 from Slowloris_Detection import detect_slowloris_from_logs
 from Get_traffic_logs import get_new_traffic_logs
@@ -62,46 +61,6 @@ def detection_loop():
             ips_to_clear = set()  # Store IP to be cleared
             is_high_unique_ip_ddos = False  
             
-            # Detect Slowloris
-            if traffic_logs:
-                slowloris_candidates = detect_slowloris_from_logs(traffic_logs, threshold_matches=5)
-                if slowloris_candidates:
-                    print(">>>>>>>> Slowloris Attack Detected from Traffic Logs !!!!!! <<<<<<<<")
-                    current_time = time.time()
-                    
-                    # Count Source IP Slowloris Detected
-                    slowloris_ip_count = len(slowloris_candidates)
-                    
-                    if slowloris_ip_count >= SLOWLORIS_ZONE_THRESHOLD:
-                        #  2 IP Create Zone-based Rule
-                        print(f">>>>>>> Multiple Slowloris Sources Detected ({slowloris_ip_count} IPs) - Switching to Zone-based Blocking <<<<<<<<")
-                        zones_to_block = set()  # เก็บ zone ที่จะบล็อก (ป้องกันซ้ำ)
-                        for src_ip, candidate_info in slowloris_candidates.items():
-                            src_zone = candidate_info['src_zone']
-                            dst_zone = candidate_info['dst_zone']
-                            zones_to_block.add((src_zone, dst_zone))
-                            ips_to_clear.add(src_ip)  
-                        
-                        for src_zone, dst_zone in zones_to_block:
-                            rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
-                            zone_key = f"{src_zone}_to_{dst_zone}"
-                            last_time = last_zone_rule_time.get(zone_key, 0)
-                            if rule_name not in existing_rules and (current_time - last_time >= ZONE_RULE_COOLDOWN):
-                                print(f"Preparing rule to block zone {src_zone} to {dst_zone} due to multiple Slowloris sources ({slowloris_ip_count} IPs)")
-                                rules_to_create.append(("any", src_zone, dst_zone, rule_name))
-                                last_zone_rule_time[zone_key] = current_time
-                    else:
-                        # 1 IP Create IP Base
-                        for src_ip, candidate_info in slowloris_candidates.items():
-                            match_count = candidate_info['match_count']
-                            src_zone = candidate_info['src_zone']
-                            dst_zone = candidate_info['dst_zone']
-                            rule_name = f"Block_Slowloris_{src_ip.replace('.', '_')}"
-                            if rule_name not in existing_rules and src_zone and dst_zone:
-                                print(f"Preparing rule to block Slowloris from {src_ip} ({match_count} matching logs)")
-                                rules_to_create.append((src_ip, src_zone, dst_zone, rule_name))
-                            ips_to_clear.add(src_ip)
-            
             # Check DoS and Store DoS IP
             dos_ips = set()
             if predicted_attack == 1 or predicted_attack == 2:
@@ -132,7 +91,7 @@ def detection_loop():
             # Check Unique IP 
             elif unique_ip_count >= DDOS_UNIQUE_IP_THRESHOLD:
                 print(">>>>>>>>> DDoS Detected: High Unique IP Count !!!!!! <<<<<<<<")
-                is_high_unique_ip_ddos = True  # ตั้งค่าสถานะเมื่อเป็น DDoS จาก unique IP
+                is_high_unique_ip_ddos = True # DDoS => IF have many Unique IP 
                 for src_ip, (src_zone, dst_zone) in list(zone_mapping.items())[:1]: 
                     rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
                     zone_key = f"{src_zone}_to_{dst_zone}"
@@ -141,6 +100,46 @@ def detection_loop():
                         print(f"Preparing rule to block zone {src_zone} to {dst_zone} due to high unique IP count ({unique_ip_count})")
                         rules_to_create.append(("any", src_zone, dst_zone, rule_name))
                         last_zone_rule_time[zone_key] = current_time
+            
+            # Detect Slowloris
+            if traffic_logs:
+                slowloris_candidates = detect_slowloris_from_logs(traffic_logs, threshold_matches=5)
+                if slowloris_candidates:
+                    print(">>>>>>>> Slowloris Attack Detected from Traffic Logs !!!!!! <<<<<<<<")
+                    current_time = time.time()
+                    
+                    # Count Source IP Slowloris Detected
+                    slowloris_ip_count = len(slowloris_candidates)
+                    
+                    if slowloris_ip_count >= SLOWLORIS_ZONE_THRESHOLD:
+                        #  2 IP Create Zone-based Rule
+                        print(f">>>>>>> Multiple Slowloris Sources Detected ({slowloris_ip_count} IPs) - Switching to Zone-based Blocking <<<<<<<<")
+                        zones_to_block = set() 
+                        for src_ip, candidate_info in slowloris_candidates.items():
+                            src_zone = candidate_info['src_zone']
+                            dst_zone = candidate_info['dst_zone']
+                            zones_to_block.add((src_zone, dst_zone))
+                            ips_to_clear.add(src_ip)  
+                        
+                        for src_zone, dst_zone in zones_to_block:
+                            rule_name = f"Block_Zone_{src_zone}_to_{dst_zone}"
+                            zone_key = f"{src_zone}_to_{dst_zone}"
+                            last_time = last_zone_rule_time.get(zone_key, 0)
+                            if rule_name not in existing_rules and (current_time - last_time >= ZONE_RULE_COOLDOWN):
+                                print(f"Preparing rule to block zone {src_zone} to {dst_zone} due to multiple Slowloris sources ({slowloris_ip_count} IPs)")
+                                rules_to_create.append(("any", src_zone, dst_zone, rule_name))
+                                last_zone_rule_time[zone_key] = current_time
+                    else:
+                        # 1 IP Create IP Base
+                        for src_ip, candidate_info in slowloris_candidates.items():
+                            match_count = candidate_info['match_count']
+                            src_zone = candidate_info['src_zone']
+                            dst_zone = candidate_info['dst_zone']
+                            rule_name = f"Block_Slowloris_{src_ip.replace('.', '_')}"
+                            if rule_name not in existing_rules and src_zone and dst_zone:
+                                print(f"Preparing rule to block Slowloris from {src_ip} ({match_count} matching logs)")
+                                rules_to_create.append((src_ip, src_zone, dst_zone, rule_name))
+                            ips_to_clear.add(src_ip)
 
             if int(time.time()) % 10 == 0:
                 existing_rules.update(sync_existing_rules())
